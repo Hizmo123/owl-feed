@@ -1,0 +1,1999 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no,interactive-widget=resizes-content">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Owl Feed">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/icon-192.png">
+<title>Owl Feed</title>
+<style>
+:root{
+  --bg:#000; --bg2:#16181c; --bg3:#202327; --text:#e7e9ea; --dim:#71767b; --line:#2f3336;
+  --blue:#1d9bf0; --pink:#f91880; --green:#00ba7c; --gold:#e2b719; --red:#f4212e; --orange:#ffd400;
+  --gry:#eb4650; --sly:#2fa05c; --rav:#4d7fe8; --huf:#f2c14e; --staff:#a08cd0; --ghost:#8aa6bd; --press:#c678a6; --min:#c0577f;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --navh:calc(53px + var(--sab));
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font:15px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0;text-align:left}
+input,textarea{font:inherit;color:var(--text)}
+svg{display:block}
+#app{position:fixed;inset:0}
+
+/* ---------- top bar (home) ---------- */
+#topbar{position:fixed;left:0;right:0;top:0;z-index:10;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform .22s ease}
+#topbar.hide{transform:translateY(-110%)}
+.tb-row{height:53px;margin-top:var(--sat);display:flex;align-items:center;padding:0 16px}
+.tb-row .side{width:56px;display:flex}
+.tb-row .side.r{justify-content:flex-end}
+#tbAvatar .av{width:32px;height:32px;font-size:12px}
+.tb-logo{flex:1;display:flex;justify-content:center;color:var(--text)}
+.tb-logo svg{width:27px;height:27px}
+#conn{width:7px;height:7px;border-radius:50%;background:transparent;align-self:center}
+#conn.off{background:var(--red)}
+#homeTabs{display:flex;border-bottom:1px solid var(--line)}
+#homeTabs button{flex:1;text-align:center;padding:14px 0 12px;font-weight:500;font-size:15px;color:var(--dim);position:relative}
+#homeTabs button.on{color:var(--text);font-weight:700}
+#homeTabs button.on:after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:56px;height:4px;border-radius:4px;background:var(--blue)}
+
+/* ---------- screens ---------- */
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding-bottom:calc(var(--navh) + 20px)}
+.screen.active{display:block}
+#scr-home{padding-top:calc(var(--sat) + 97px)}
+.shead{position:sticky;top:0;z-index:5;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding-top:var(--sat)}
+.shead .ttl{font-size:20px;font-weight:800;padding:12px 16px}
+.subtabs{display:flex;border-bottom:1px solid var(--line)}
+.subtabs button{flex:1;text-align:center;padding:14px 0 12px;color:var(--dim);font-weight:500;position:relative}
+.subtabs button.on{color:var(--text);font-weight:700}
+.subtabs button.on:after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:48px;height:4px;border-radius:4px;background:var(--blue)}
+
+/* ---------- posts ---------- */
+.post{padding:10px 16px 2px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.post:active{background:#080808}
+.ctx{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:13px;font-weight:700;padding:0 0 2px 26px;margin-bottom:-2px}
+.ctx svg{width:14px;height:14px}
+.prow{display:flex;gap:10px}
+.gutter{display:flex;flex-direction:column;align-items:center;flex:none}
+.gutter .tl{width:2px;flex:1;background:var(--line);margin-top:4px;border-radius:2px}
+.av{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff;position:relative}
+.av.sm{width:20px;height:20px;font-size:8px}
+.av.md{width:32px;height:32px;font-size:12px}
+.av.xl{width:72px;height:72px;font-size:26px}
+.av .dot{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:var(--green);border:2px solid var(--bg)}
+.pbody{flex:1;min-width:0}
+.meta{display:flex;align-items:center;gap:4px;min-width:0}
+.meta .who{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
+.nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+.chk{width:16px;height:16px;flex:none}
+.hdot{width:7px;height:7px;border-radius:50%;flex:none}
+.hd{color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.meta .more{margin-left:auto;color:var(--dim);padding:2px 0 2px 10px;flex:none}
+.meta .more svg{width:19px;height:19px}
+.rto{color:var(--dim);font-size:14px;margin-top:1px}
+.rto .lnk{color:var(--blue)}
+.txt{margin-top:1px;white-space:pre-wrap;word-wrap:break-word;font-size:15px}
+.txt .lnk{color:var(--blue)}
+.post.big .txt{font-size:17px;line-height:1.4}
+.quote{margin-top:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;overflow:hidden}
+.quote .qmeta{display:flex;align-items:center;gap:4px;font-size:14px;min-width:0}
+.quote .qmeta .nm{font-size:14px}
+.quote .qtxt{margin-top:2px;font-size:14px;color:var(--text);white-space:pre-wrap;word-wrap:break-word;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.verdict{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.v-viral{color:var(--gold);border-color:#5c4a0a}
+.v-good,.v-won{color:var(--green);border-color:#0e4d36}
+.v-flop,.v-lost,.v-ratioed{color:var(--pink);border-color:#67123a}
+.v-controversial{color:#ff8a3d;border-color:#6b3a14}
+.actrow{display:flex;align-items:center;margin:4px 0 2px;color:var(--dim);max-width:460px}
+.actrow .a{display:flex;align-items:center;gap:3px;font-size:13px;padding:6px 0;flex:1}
+.actrow .a svg{width:18.5px;height:18.5px}
+.actrow .grp{display:flex;align-items:center;gap:14px;flex:none}
+.actrow .grp .a{flex:none;padding:6px 0}
+.a.c-like.on{color:var(--pink)}
+.a.c-rt.on{color:var(--green)}
+.a.c-bmk.on{color:var(--blue)}
+.pop{animation:pop .3s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+.typing{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:13px;margin-top:5px}
+.typing .dots{display:inline-flex;gap:3px}
+.typing .dots i{width:4px;height:4px;border-radius:50%;background:var(--dim);animation:bnc 1s infinite}
+.typing .dots i:nth-child(2){animation-delay:.15s}.typing .dots i:nth-child(3){animation-delay:.3s}
+@keyframes bnc{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.empty{padding:48px 32px;text-align:center;color:var(--dim)}
+.empty b{display:block;color:var(--text);font-size:23px;font-weight:800;margin-bottom:6px}
+
+/* detail page */
+.dmeta{display:flex;align-items:center;gap:10px;padding:12px 16px 6px}
+.dmeta .names{flex:1;min-width:0}
+.dmeta .names .nmrow{display:flex;align-items:center;gap:4px}
+.dmeta .names .hd{display:block}
+.dtxt{padding:2px 16px 10px;font-size:19px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word}
+.dtxt .lnk{color:var(--blue)}
+.dtime{padding:4px 16px 12px;color:var(--dim);font-size:14px;border-bottom:1px solid var(--line)}
+.dstats{display:flex;gap:16px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px;color:var(--dim);flex-wrap:wrap}
+.dstats b{color:var(--text)}
+.dacts{border-bottom:1px solid var(--line);padding:2px 10px}
+.replybar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;padding:8px 14px calc(var(--sab) + 8px);border-top:1px solid var(--line);background:var(--bg)}
+.replybar input{flex:1;padding:10px 16px;border-radius:999px;border:1px solid transparent;background:var(--bg3);outline:none;min-width:0;font-size:15px}
+.replybar input:focus{border-color:var(--blue);background:var(--bg)}
+.replybar .send{color:#fff;background:var(--blue);font-weight:700;padding:8px 16px;border-radius:999px;flex:none}
+.replybar .send:disabled{opacity:.5}
+
+/* ---------- bottom nav ---------- */
+#bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:.5px solid var(--line);padding-bottom:var(--sab)}
+#bottomnav button{flex:1;display:grid;place-items:center;height:52px;color:var(--text);position:relative}
+#bottomnav svg{width:26px;height:26px}
+.badge{position:absolute;top:7px;left:calc(50% + 4px);min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--blue);color:#fff;font-size:10.5px;font-weight:700;display:none;place-items:center;border:1px solid #000}
+.badge.show{display:grid}
+
+#fab{position:fixed;right:16px;bottom:calc(var(--navh) + 16px);width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.55);z-index:11}
+#fab svg{width:24px;height:24px}
+#fab.hidden{display:none}
+
+/* new posts pill */
+#newPill{position:fixed;top:calc(var(--sat) + 108px);left:50%;transform:translate(-50%,-56px);opacity:0;background:var(--blue);color:#fff;font-weight:700;font-size:14px;border-radius:999px;padding:8px 14px 8px 10px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(29,155,240,.4);z-index:12;transition:transform .25s ease,opacity .25s ease;pointer-events:none}
+#newPill.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+#newPill .avs{display:flex}
+#newPill .avs .av{width:24px;height:24px;font-size:9px;border:2px solid var(--blue);margin-left:-8px}
+#newPill .avs .av:first-child{margin-left:0}
+#newPill svg{width:16px;height:16px}
+
+/* pull to refresh */
+#ptr{height:0;display:grid;place-items:center;overflow:hidden;color:var(--dim)}
+#ptr svg{width:22px;height:22px;transition:transform .2s}
+#ptr.spin svg{animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* ---------- pages stack ---------- */
+#pages{position:fixed;left:0;right:0;top:0;bottom:var(--navh);z-index:20;pointer-events:none}
+.page{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;pointer-events:auto;transform:translateX(100%);transition:transform .22s ease;will-change:transform}
+.page.in{transform:none}
+.page.drag{transition:none}
+.pghead{display:flex;align-items:center;gap:18px;padding:calc(var(--sat) + 6px) 14px 6px;min-height:calc(var(--sat) + 50px);background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;z-index:2}
+.pghead .back{width:36px;height:36px;display:grid;place-items:center;margin-left:-8px;border-radius:50%;flex:none}
+.pghead .back:active{background:var(--bg2)}
+.pghead .back svg{width:21px;height:21px}
+.pghead .pgtitle{font-size:19px;font-weight:800;line-height:1.15;min-width:0}
+.pghead .pgtitle .sub{display:block;font-size:12.5px;font-weight:400;color:var(--dim)}
+.pgscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:30px}
+.page.hasbar .pgscroll{padding-bottom:80px}
+
+/* profile */
+.banner{height:116px;background:var(--bg2);background-size:cover;background-position:center}
+.pfhead{padding:0 16px 12px;border-bottom:1px solid var(--line)}
+.pftop{display:flex;justify-content:space-between;align-items:flex-start}
+.pftop .av.xl{margin-top:-38px;border:4px solid var(--bg)}
+.pillbtn{margin-top:10px;padding:7px 16px;border-radius:999px;font-weight:700;font-size:14px;background:var(--text);color:#000;flex:none}
+.pillbtn.outline{background:transparent;color:var(--text);border:1px solid var(--dim)}
+.pfname{margin-top:8px;display:flex;align-items:center;gap:4px;font-size:20px;font-weight:800}
+.pfname .chk{width:19px;height:19px}
+.pfhd{color:var(--dim);font-size:15px;display:flex;align-items:center;gap:8px}
+.fchip{font-size:11px;background:var(--bg3);color:var(--dim);border-radius:4px;padding:1px 5px;font-weight:500}
+.pfbio{margin-top:10px;font-size:15px;white-space:pre-wrap}
+.pfline{margin-top:10px;display:flex;align-items:center;gap:14px;color:var(--dim);font-size:14px;flex-wrap:wrap}
+.pfline .hl{display:flex;align-items:center;gap:5px}
+.pfline svg{width:17px;height:17px}
+.pfcounts{margin-top:10px;display:flex;gap:18px;font-size:14px;color:var(--dim)}
+.pfcounts b{color:var(--text)}
+.gstats{margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:14px;font-size:13px;color:var(--dim)}
+.gstats .hypew{flex:1;min-width:70px}
+.gstats .hbar{height:5px;border-radius:3px;background:var(--bg3);overflow:hidden;margin-top:4px}
+.gstats .hbar div{height:100%;background:var(--blue);border-radius:3px;transition:width .5s}
+.gstats b{color:var(--text);font-weight:700}
+.gstats .gs{white-space:nowrap}
+
+/* user rows / explore / lists */
+.urow{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer}
+.urow:active{background:#080808}
+.urow .uinfo{flex:1;min-width:0}
+.urow .uinfo .meta{gap:4px}
+.urow .sub{color:var(--dim);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbtn{padding:6px 16px;border-radius:999px;font-weight:700;font-size:14px;background:var(--text);color:#000;flex:none}
+.fbtn.following{background:transparent;color:var(--text);border:1px solid var(--dim)}
+.sect{padding:14px 16px 8px;font-size:19px;font-weight:800}
+.trow{padding:10px 16px;cursor:pointer}
+.trow:active{background:#080808}
+.trow .k{color:var(--dim);font-size:13px}
+.trow .t{font-weight:700;font-size:15px;margin:1px 0}
+.trow .n{color:var(--dim);font-size:13px}
+.searchwrap{padding:6px 16px 10px;display:flex;align-items:center;gap:12px}
+.searchwrap .av{cursor:pointer}
+.sbox{flex:1;display:flex;align-items:center;gap:8px;background:var(--bg3);border-radius:999px;padding:9px 14px}
+.sbox svg{width:16px;height:16px;color:var(--dim);flex:none}
+.sbox input{flex:1;background:none;border:0;outline:none;font-size:15px;min-width:0}
+.chips{display:flex;gap:8px;padding:4px 16px 8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--text)}
+.showmore{display:block;width:100%;padding:14px 16px;color:var(--blue);font-size:15px;border-bottom:1px solid var(--line)}
+
+/* notifications */
+.nrow{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.nrow.unread{background:#0a0d10}
+.nrow:active{background:#080808}
+.nrow .nicon{width:30px;flex:none;display:flex;justify-content:flex-end}
+.nrow .nicon svg{width:26px;height:26px}
+.nrow .nbody{flex:1;min-width:0}
+.nrow .navs{display:flex;gap:6px;margin-bottom:6px}
+.nrow .t{font-size:15px}
+.nrow .t b{font-weight:700}
+.nrow .ex{color:var(--dim);font-size:14px;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nrow .tm{color:var(--dim);font-size:12.5px;margin-top:3px}
+
+/* house cup */
+.cup{padding:4px 16px 14px}
+.cup .h{display:flex;justify-content:space-between;font-size:14px;margin:10px 0 4px}
+.cup .b{height:8px;border-radius:5px;background:var(--bg2);overflow:hidden}
+.cup .b div{height:100%;transition:width .6s;border-radius:5px}
+.rk{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer}
+.rk .n{width:22px;text-align:center;color:var(--dim);font-weight:700;flex:none}
+.rk .f{margin-left:auto;font-weight:700}
+
+/* settings/menu rows */
+.mrow{display:flex;align-items:center;gap:16px;padding:15px 20px;font-size:17px;font-weight:600;width:100%}
+.mrow:active{background:var(--bg2)}
+.mrow svg{width:22px;height:22px;color:var(--text)}
+.mrow.danger{color:var(--red)}
+.mrow.danger svg{color:var(--red)}
+
+/* ---------- drawer ---------- */
+#scrim{position:fixed;inset:0;background:rgba(91,112,131,.4);z-index:39;opacity:0;pointer-events:none;transition:opacity .22s}
+#scrim.show{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;bottom:0;left:0;width:76%;max-width:300px;background:var(--bg);z-index:40;transform:translateX(-102%);transition:transform .25s ease;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+#drawer.show{transform:none}
+.dr-top{padding:calc(var(--sat) + 16px) 20px 14px;border-bottom:1px solid var(--line)}
+.dr-top .nmrow{display:flex;align-items:center;gap:4px;margin-top:10px;font-weight:800;font-size:17px}
+.dr-top .hd{font-size:14px}
+.dr-counts{display:flex;gap:16px;margin-top:10px;font-size:14px;color:var(--dim)}
+.dr-counts b{color:var(--text)}
+.dr-menu{flex:1;overflow-y:auto;padding:6px 0}
+
+/* ---------- compose ---------- */
+#compose{position:fixed;inset:0;background:var(--bg);z-index:50;display:none;flex-direction:column}
+#compose.show{display:flex;animation:slideup .22s ease}
+@keyframes slideup{from{transform:translateY(8%);opacity:.6}to{transform:none;opacity:1}}
+.chead{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--sat) + 8px) 14px 8px}
+.chead .cancel{font-size:15px;padding:8px 4px}
+.cpost{background:var(--blue);color:#fff;font-weight:700;font-size:14px;padding:7px 16px;border-radius:999px}
+.cpost:disabled{opacity:.5}
+.cbody{flex:1;display:flex;gap:10px;padding:10px 16px;overflow-y:auto}
+.cbody textarea{flex:1;width:100%;min-height:120px;background:none;border:0;outline:none;resize:none;font-size:19px;line-height:1.4;color:var(--text);padding-top:6px}
+.cbody textarea::placeholder{color:var(--dim)}
+.cmain{flex:1;min-width:0}
+.cfoot{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 16px calc(var(--sab) + 12px);border-top:1px solid var(--line)}
+.cfoot .hint{margin-right:auto;color:var(--blue);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ring{position:relative;width:26px;height:26px}
+.ring svg{width:26px;height:26px;transform:rotate(-90deg)}
+.ring .rtrack{stroke:var(--line);fill:none;stroke-width:2.5}
+.ring .rbar{stroke:var(--blue);fill:none;stroke-width:2.5;stroke-linecap:round;transition:stroke-dashoffset .1s}
+.ring.warn .rbar{stroke:var(--orange)}
+.ring.over .rbar{stroke:var(--red)}
+.ring .rnum{position:absolute;inset:0;display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--dim)}
+.ring.warn .rnum{color:var(--orange)}
+.ring.over .rnum{color:var(--red)}
+
+/* ---------- bottom action sheet ---------- */
+#sheetWrap{position:fixed;inset:0;z-index:60;display:none;align-items:flex-end;background:rgba(91,112,131,.4)}
+#sheetWrap.show{display:flex}
+#sheet{width:100%;background:var(--bg);border-radius:18px 18px 0 0;padding:10px 0 calc(var(--sab) + 10px);animation:up .2s ease}
+@keyframes up{from{transform:translateY(30%)}to{transform:none}}
+#sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--line);margin:2px auto 8px}
+#sheet .cancelbtn{margin:8px 16px 0;width:calc(100% - 32px);text-align:center;padding:13px;border:1px solid var(--line);border-radius:999px;font-weight:700}
+
+/* ---------- waking splash (free hosting sleeps; the first visit after a nap takes a while) ---------- */
+#waking{position:fixed;inset:0;background:var(--bg);z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+#waking.show{display:flex}
+#waking .owl{width:56px;height:56px;color:var(--text);animation:wk 2.4s ease-in-out infinite}
+@keyframes wk{0%,100%{transform:translateY(0) rotate(-4deg);opacity:.8}50%{transform:translateY(-8px) rotate(4deg);opacity:1}}
+#waking h2{font-size:22px;font-weight:800;margin:18px 0 6px}
+#waking p{color:var(--dim);font-size:15px;line-height:1.4;max-width:300px;margin:0 0 18px}
+#waking button{background:var(--text);color:#000;border:0;border-radius:999px;padding:10px 22px;font-weight:700;font-size:15px}
+#waking .dots span{display:inline-block;animation:wd 1.2s infinite}
+#waking .dots span:nth-child(2){animation-delay:.2s}#waking .dots span:nth-child(3){animation-delay:.4s}
+@keyframes wd{0%,60%,100%{opacity:.2}30%{opacity:1}}
+/* ---------- signup ---------- */
+#signup{position:fixed;inset:0;background:var(--bg);z-index:70;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#signup.show{display:flex}
+#signup .owl{width:44px;height:44px;margin-bottom:14px;color:var(--text)}
+#signup .card{width:100%;max-width:400px}
+#signup h1{font-size:26px;font-weight:800;margin:0 0 20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
+.field input{width:100%;padding:13px 14px;border-radius:6px;border:1px solid var(--line);background:var(--bg);outline:none;font-size:16px}
+.field input:focus{border-color:var(--blue)}
+.houses{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.houses button{padding:12px 8px;border-radius:8px;border:1.5px solid var(--line);font-weight:700;text-align:center}
+.houses button.on{border-color:var(--blue);background:#0a171f}
+.err{color:var(--red);font-size:13px;min-height:18px;margin:6px 0}
+#joinBtn{width:100%;padding:14px;border-radius:999px;background:var(--text);color:#000;font-weight:700;font-size:16px;text-align:center}
+#joinBtn:disabled{opacity:.5}
+
+/* skeletons */
+.sk{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px}
+.sk .c{width:40px;height:40px;border-radius:50%;background:var(--bg2);flex:none}
+.sk .ln{flex:1}
+.sk .b{height:12px;border-radius:6px;background:var(--bg2);margin-bottom:8px}
+.sk .b.w60{width:60%}.sk .b.w90{width:90%}.sk .b.w40{width:40%}
+.sk .c,.sk .b{animation:pulse 1.4s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* @mention autocomplete */
+#mention{position:fixed;left:8px;right:8px;z-index:95;background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:0 0 14px rgba(255,255,255,.12);display:none;overflow:hidden;max-width:520px;margin:0 auto}
+#mention.show{display:block}
+#mention .mi{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer}
+#mention .mi.sel,#mention .mi:active{background:var(--bg2)}
+#mention .mi .av{width:36px;height:36px;font-size:13px;pointer-events:none}
+#mention .mi .mt{min-width:0;flex:1}
+#mention .mi .mn{display:flex;align-items:center;gap:4px;font-weight:700;font-size:15px}
+#mention .mi .mn .nm{max-width:60vw}
+#mention .mi .mh{color:var(--dim);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mention .mi .mtag{font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:1px 7px;flex:none}
+/* avatars are illustrated SVGs or uploaded photos, set as background images */
+.av{background-size:cover;background-position:center;background-repeat:no-repeat;background-color:#1c1f23;font-size:0;border:1px solid rgba(255,255,255,.08)}
+.av.xl{border:4px solid var(--bg)}
+/* messages */
+.ttlrow{display:flex;align-items:center;justify-content:space-between;padding-right:12px}
+.iconbtn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--text)}
+.iconbtn:active{background:var(--bg2)}
+.iconbtn svg{width:22px;height:22px}
+.pfbtns{display:flex;align-items:center;gap:8px;margin-top:10px}
+.pfbtns .pillbtn{margin-top:0}
+.pfbtns .iconbtn{border:1px solid var(--dim);width:36px;height:36px}
+.crow{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.crow:active{background:#080808}
+.crow .cinfo{flex:1;min-width:0}
+.crow .meta .who{overflow:hidden}
+.cprev{color:var(--dim);font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.crow.unread .cprev{color:var(--text);font-weight:600}
+.udot{width:10px;height:10px;border-radius:50%;background:var(--blue);flex:none}
+.page.chat{background:var(--bg)}
+.chathd{display:flex;align-items:center;gap:10px;min-width:0}
+.chathd .av{width:32px;height:32px;flex:none}
+.chathd .pgtitle{font-size:16px;min-width:0}
+.nmrow2{display:flex;align-items:center;gap:4px}
+.chatscroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 14px 14px;display:flex;flex-direction:column;gap:3px}
+.bub{max-width:78%;padding:9px 14px;border-radius:19px;font-size:15px;line-height:1.35;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere}
+.bub.me{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:6px}
+.bub.them{align-self:flex-start;background:#2f3336;border-bottom-left-radius:6px}
+.bub .lnk{color:inherit;text-decoration:underline}
+.ctime{align-self:center;color:var(--dim);font-size:12px;margin:12px 0 4px}
+.mtime{font-size:11.5px;color:var(--dim);margin:2px 6px 8px;align-self:flex-start}
+.mtime.me{align-self:flex-end}
+.mtime .seen{color:var(--text)}
+.rx{align-self:flex-start;margin:-6px 0 4px 10px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:1px 7px;font-size:13px}
+.rx.me{align-self:flex-end;margin:-6px 10px 4px 0}
+.bub.typingb{padding:12px 16px}
+.bub.typingb .dots{display:inline-flex;gap:4px}
+.bub.typingb .dots i{width:6px;height:6px;border-radius:50%;background:#9aa0a6;animation:bnc 1s infinite}
+.bub.typingb .dots i:nth-child(2){animation-delay:.15s}.bub.typingb .dots i:nth-child(3){animation-delay:.3s}
+.chatbar{display:flex;align-items:flex-end;gap:8px;padding:8px 12px 10px;border-top:1px solid var(--line);background:var(--bg)}
+.chatbar textarea{flex:1;background:var(--bg3);border:1px solid transparent;border-radius:20px;padding:10px 15px;outline:none;resize:none;max-height:110px;font-size:15px;line-height:1.3;min-width:0}
+.chatbar textarea:focus{border-color:var(--blue);background:var(--bg)}
+.csend{width:40px;height:40px;border-radius:50%;background:var(--blue);display:grid;place-items:center;color:#fff;flex:none}
+.csend svg{width:19px;height:19px}
+.csend:disabled{opacity:.45}
+/* edit profile + cropper */
+.epbanner{height:124px;background-size:cover;background-position:center;position:relative}
+.epavrow{padding:0 16px;margin-top:-36px;position:relative;pointer-events:none}
+.epavrow .epav{pointer-events:auto}
+.epbanner .epcam{top:10px;bottom:auto}
+.epav{width:76px;height:76px;position:relative}
+.epcam{position:absolute;right:10px;bottom:8px;width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.62);display:grid;place-items:center}
+.epcam svg{width:20px;height:20px}
+.epcam.sm{right:-6px;bottom:-4px;width:30px;height:30px;border:2px solid var(--bg)}
+.epcam.sm svg{width:15px;height:15px}
+#cropper{position:fixed;inset:0;background:#000;z-index:100;display:none;flex-direction:column}
+#cropper.show{display:flex}
+.crhead{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--sat) + 10px) 14px 10px;font-weight:700}
+.crstage{flex:1;display:grid;place-items:center}
+.crframe{position:relative;overflow:hidden;outline:2px solid var(--blue);touch-action:none;background:#111}
+.crframe.round{border-radius:50%}
+.crframe canvas{display:block;touch-action:none;cursor:grab}
+.crctl{display:flex;align-items:center;gap:12px;padding:12px 24px calc(var(--sab) + 22px);color:var(--dim);font-size:13px}
+.crctl input{flex:1}
+.post.grp{border-bottom:0}
+.story{display:inline-block;margin-top:6px;font-size:11.5px;color:#ff8a5c;border:1px solid #6b3a14;border-radius:999px;padding:2px 9px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow.hot{border-left:3px solid #ff6a3d;background:linear-gradient(90deg,rgba(255,106,61,.10),transparent 70%)}
+.trow.hot .k{color:#ff8a5c}
+#toast{position:fixed;left:50%;bottom:calc(var(--navh) + 70px);transform:translate(-50%,16px);background:var(--blue);color:#fff;padding:10px 18px;border-radius:999px;z-index:80;opacity:0;pointer-events:none;transition:.25s;max-width:92%;font-size:14px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div class="tb-row">
+      <div class="side"><button id="tbAvatar" aria-label="Menu"></button></div>
+      <div class="tb-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4l3 3h8l3-3v9a7 7 0 01-14 0z"/><circle cx="9.5" cy="11" r="1.6"/><circle cx="14.5" cy="11" r="1.6"/><path d="M11 14.5l1 1.2 1-1.2"/></svg></div>
+      <div class="side r"><span id="conn"></span></div>
+    </div>
+    <div id="homeTabs"><button data-feed="foryou" class="on">For you</button><button data-feed="following">Following</button></div>
+  </div>
+  <main>
+    <section id="scr-home" class="screen active"><div id="ptr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 3v5h-5"/></svg></div><div id="feedList"></div></section>
+    <section id="scr-explore" class="screen">
+      <div class="shead"><div class="searchwrap"><span id="exAvatar"></span><div class="sbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search Owl Feed" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div></div></div>
+      <div id="exploreList"></div>
+    </section>
+    <section id="scr-notifs" class="screen">
+      <div class="shead"><div class="ttl">Notifications</div><div class="subtabs" id="ntabs"><button data-nt="all" class="on">All</button><button data-nt="mentions">Mentions</button><button data-nt="verified">Verified</button></div></div>
+      <div id="notifList"></div>
+    </section>
+    <section id="scr-msgs" class="screen">
+      <div class="shead"><div class="ttlrow"><div class="ttl">Messages</div><button id="newDm" class="iconbtn" aria-label="New message"></button></div></div>
+      <div id="inbox"></div>
+    </section>
+    <section id="scr-profile" class="screen"><div id="myProfile"></div></section>
+  </main>
+  <nav id="bottomnav">
+    <button data-tab="home" class="on" aria-label="Home"></button>
+    <button data-tab="explore" aria-label="Search"></button>
+    <button data-tab="notifs" aria-label="Notifications"><span class="badge" id="nbadge"></span></button>
+    <button data-tab="msgs" aria-label="Messages"><span class="badge" id="mbadge"></span></button>
+    <button data-tab="profile" aria-label="Profile"></button>
+  </nav>
+</div>
+<button id="fab" aria-label="Post"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.2 2.3c-2.1-.6-6.9-1.3-11 2.3C7.3 8 6.5 13 6.4 15.3l-3 3a1 1 0 101.4 1.4l3-3c2.3-.1 7.3-.9 10.7-4.8 3.6-4.1 2.9-8.9 2.3-11a1 1 0 00-.6-.6zM9 15.5c.3-2.3 1.2-6 4-8.4 2.8-2.5 6-2.6 7.9-2.3.3 1.9.2 5.1-2.3 7.9-2.4 2.8-6.1 3.7-8.4 4z"/><path d="M14 8l-5.8 5.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+<button id="newPill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M6 11l6-6 6 6"/></svg><span class="avs" id="pillAvs"></span><span id="pillTxt"></span></button>
+
+<div id="pages"></div>
+<div id="scrim"></div>
+<aside id="drawer"></aside>
+
+<div id="compose">
+  <div class="chead"><button class="cancel" id="cCancel">Cancel</button><button class="cpost" id="cPost" disabled>Post</button></div>
+  <div class="cbody"><span id="cAv"></span><div class="cmain"><div id="cReplyTo"></div><textarea id="cText" maxlength="280" placeholder="What's happening?"></textarea><div id="cQuote"></div></div></div>
+  <div class="cfoot"><span class="hint" id="cHint"></span>
+    <div class="ring" id="cRing"><svg viewBox="0 0 26 26"><circle class="rtrack" cx="13" cy="13" r="10"/><circle class="rbar" cx="13" cy="13" r="10" stroke-dasharray="62.8" stroke-dashoffset="62.8"/></svg><span class="rnum" id="cNum"></span></div>
+  </div>
+</div>
+
+<div id="sheetWrap"><div id="sheet"></div></div>
+
+<div id="cropper">
+  <div class="crhead"><button id="crCancel">Cancel</button><span id="crTitle">Crop photo</span><button id="crApply" class="cpost">Apply</button></div>
+  <div class="crstage"><div class="crframe" id="crFrame"><canvas id="crCanvas"></canvas></div></div>
+  <div class="crctl"><span>Zoom</span><input type="range" id="crZoom" min="1" max="4" step="0.01" value="1"></div>
+</div>
+
+<div id="signup">
+  <svg class="owl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4l3 3h8l3-3v9a7 7 0 01-14 0z"/><circle cx="9.5" cy="11" r="1.6"/><circle cx="14.5" cy="11" r="1.6"/><path d="M11 14.5l1 1.2 1-1.2"/></svg>
+  <div class="card">
+    <h1>Join Owl Feed today</h1>
+    <div class="field"><label>Name</label><input id="suName" maxlength="30" placeholder="Your name"></div>
+    <div class="field"><label>Handle</label><input id="suHandle" maxlength="20" placeholder="handle" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="field" id="suInviteField" style="display:none"><label>Invite code</label><input id="suInvite" maxlength="60" placeholder="Ask whoever invited you" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="field"><label>House</label><div class="houses" id="suHouses"></div></div>
+    <div class="err" id="suErr"></div>
+    <button id="joinBtn">Create account</button>
+  </div>
+</div>
+<div id="waking">
+  <svg class="owl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4l3 3h8l3-3v9a7 7 0 01-14 0z"/><circle cx="9.5" cy="11" r="1.6"/><circle cx="14.5" cy="11" r="1.6"/><path d="M11 14.5l1 1.2 1-1.2"/></svg>
+  <h2>Waking up the castle<span class="dots"><span>.</span><span>.</span><span>.</span></span></h2>
+  <p id="wakingMsg">The castle naps when nobody is around. This usually takes under a minute.</p>
+  <button id="wakingBtn">Try now</button>
+</div>
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const HC = { Gryffindor:'var(--gry)', Slytherin:'var(--sly)', Ravenclaw:'var(--rav)', Hufflepuff:'var(--huf)', Staff:'var(--staff)', Ghost:'var(--ghost)', Prophet:'var(--press)', Ministry:'var(--min)' };
+const HOUSES = ['Gryffindor','Slytherin','Ravenclaw','Hufflepuff'];
+
+/* ---------------- icons ---------------- */
+const I = {
+  home_o:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3.5 10.5L12 3l8.5 7.5V21h-6v-6.5h-5V21h-6z" stroke-linejoin="round"/></svg>',
+  home_f:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.4L2.5 10.8V22h7v-6.5h5V22h7V10.8z"/></svg>',
+  search_o:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.8" cy="10.8" r="7.3"/><path d="M21 21l-4.8-4.8"/></svg>',
+  search_f:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="10.8" cy="10.8" r="6.8"/><path d="M21 21l-4.8-4.8"/></svg>',
+  bell_o:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8.2A6 6 0 0118 8.2c0 6.3 2.5 8 2.5 8h-17S6 14.5 6 8.2" stroke-linejoin="round"/><path d="M10 20.5a2.2 2.2 0 004 0" stroke-linecap="round"/></svg>',
+  bell_f:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6.5 6.5 0 00-6.5 6.5c0 5.5-2 7.2-2 7.2h17s-2-1.7-2-7.2A6.5 6.5 0 0012 2zM9.6 19.5a2.5 2.5 0 004.8 0z"/></svg>',
+  mail_o:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5" width="19" height="15" rx="2.5"/><path d="M3 7l9 6.5L21 7"/></svg>',
+  mail_f:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.5 7.6V18a2.5 2.5 0 002.5 2.5h14A2.5 2.5 0 0021.5 18V7.6l-9.5 6.7zM21.2 5.3A2.5 2.5 0 0019 4H5a2.5 2.5 0 00-2.2 1.3L12 11.8z"/></svg>',
+  user_o:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4.2"/><path d="M4.5 21a7.5 7.5 0 0115 0" stroke-linecap="round"/></svg>',
+  user_f:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.8" r="4.5"/><path d="M3.8 21.5a8.2 8.2 0 0116.4 0z"/></svg>',
+  reply:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4.5h6A6.5 6.5 0 0121.5 11 6.5 6.5 0 0115 17.5h-2.5L7 21.5v-4.4A6.5 6.5 0 019 4.5z" stroke-linejoin="round"/></svg>',
+  rt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.5L8 6l3.5 3.5"/><path d="M8 6.5V15a3.5 3.5 0 003.5 3.5H13"/><path d="M19.5 14.5L16 18l-3.5-3.5"/><path d="M16 17.5V9a3.5 3.5 0 00-3.5-3.5H11"/></svg>',
+  like_o:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20.5S3.5 15.5 3.5 9.3A4.6 4.6 0 0112 6.6a4.6 4.6 0 018.5 2.7c0 6.2-8.5 11.2-8.5 11.2z" stroke-linejoin="round"/></svg>',
+  like_f:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5S3.5 15.5 3.5 9.3A4.6 4.6 0 0112 6.6a4.6 4.6 0 018.5 2.7c0 6.2-8.5 11.2-8.5 11.2z"/></svg>',
+  views:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19.5v-6M12 19.5v-12M19 19.5v-9"/></svg>',
+  bmk_o:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6.5 4h11v16.5L12 16.6l-5.5 3.9z" stroke-linejoin="round"/></svg>',
+  bmk_f:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 4h11v16.5L12 16.6l-5.5 3.9z"/></svg>',
+  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5V4M8.2 7.5L12 3.7l3.8 3.8"/><path d="M5 12.5v6A2.5 2.5 0 007.5 21h9a2.5 2.5 0 002.5-2.5v-6"/></svg>',
+  dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 3l7 7-4 1-4 4 .5 5-3-3L5 22.5 1.5 19 7 13.5l-3-3 5-.5 4-4z" transform="scale(.8) translate(3 1)"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9l1-13.5M10 11v6M14 11v6"/></svg>',
+  quote:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6H5.5A1.5 1.5 0 004 7.5V11a1.5 1.5 0 001.5 1.5H8A5 5 0 014 18"/><path d="M20 6h-3.5A1.5 1.5 0 0015 7.5V11a1.5 1.5 0 001.5 1.5H19A5 5 0 0115 18"/></svg>',
+  copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M5 15.5A2.5 2.5 0 014 13.5V6a2 2 0 012-2h7.5A2.5 2.5 0 0115.8 5"/></svg>',
+  cup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0z"/><path d="M17 5h3v2a3 3 0 01-3 3M7 5H4v2a3 3 0 003 3"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.5-2.3 1a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.6a7 7 0 00-2 1.2l-2.3-1-2 3.5 2 1.5a7 7 0 000 2.4l-2 1.5 2 3.5 2.3-1a7 7 0 002 1.2l.4 2.6h4l.4-2.6a7 7 0 002-1.2l2.3 1 2-3.5-2-1.5A7 7 0 0019 12z" stroke-linejoin="round"/></svg>',
+  logout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4H6.5A1.5 1.5 0 005 5.5v13A1.5 1.5 0 006.5 20H15M10 12h11M18 8.5L21.5 12 18 15.5"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>',
+  heartN:'<svg viewBox="0 0 24 24" fill="#f91880"><path d="M12 20.5S3.5 15.5 3.5 9.3A4.6 4.6 0 0112 6.6a4.6 4.6 0 018.5 2.7c0 6.2-8.5 11.2-8.5 11.2z"/></svg>',
+  rtN:'<svg viewBox="0 0 24 24" fill="none" stroke="#00ba7c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9.5L8 6l3.5 3.5"/><path d="M8 6.5V15a3.5 3.5 0 003.5 3.5H13"/><path d="M19.5 14.5L16 18l-3.5-3.5"/><path d="M16 17.5V9a3.5 3.5 0 00-3.5-3.5H11"/></svg>',
+  userN:'<svg viewBox="0 0 24 24" fill="#1d9bf0"><circle cx="12" cy="7.8" r="4.5"/><path d="M3.8 21.5a8.2 8.2 0 0116.4 0z"/></svg>',
+  starN:'<svg viewBox="0 0 24 24" fill="#e2b719"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>',
+  owlN:'<svg viewBox="0 0 24 24" fill="none" stroke="#71767b" stroke-width="1.7"><path d="M5 4l3 3h8l3-3v9a7 7 0 01-14 0z"/><circle cx="9.5" cy="11" r="1.6"/><circle cx="14.5" cy="11" r="1.6"/><path d="M11 14.5l1 1.2 1-1.2"/></svg>',
+  boltN:'<svg viewBox="0 0 24 24" fill="#ffd400"><path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12z"/></svg>',
+  send:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.5-8.1a.4.4 0 000-.7L3.4 3.5a.4.4 0 00-.6.4L4.6 10l8.9 2-8.9 2-1.8 6.1a.4.4 0 00.6.3z"/></svg>',
+  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linejoin="round"><path d="M4 8.5A1.5 1.5 0 015.5 7h2.2l1.3-2h6l1.3 2h2.2A1.5 1.5 0 0120 8.5v9a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>',
+  newmsg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12.5 5H5.5A1.5 1.5 0 004 6.5v11A1.5 1.5 0 005.5 19h13a1.5 1.5 0 001.5-1.5V11"/><path d="M4.5 7l7.5 5.5 3-2.2"/><path d="M18 3v6M15 6h6"/></svg>'
+};
+const chk = u => !u ? '' : u.kind === 'char'
+  ? '<svg class="chk" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e2b719"/><path d="M7.3 12.4l3.1 3.1 6.3-6.6" stroke="#000" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  : u.kind === 'player'
+  ? '<svg class="chk" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1d9bf0"/><path d="M7.3 12.4l3.1 3.1 6.3-6.6" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  : '';
+
+/* ---------------- state ---------------- */
+let token = null;
+try { token = localStorage.getItem('owl_token'); } catch (_) {}
+let me = null, users = {}, posts = {}, notifs = [], trend = null, onlineSet = new Set(), activity = {};
+let tab = 'home', feedMode = 'foryou', ntab = 'all';
+let bookmarks = new Set();
+let events = [];             // active hype events (server-owned)
+let pending = [];            // buffered incoming feed post ids ("Show N posts")
+let pickedHouse = null, booted = false;
+let composeMode = { type: 'post' }; // or {type:'quote', id}
+let recents = [];
+try { recents = JSON.parse(localStorage.getItem('owl_recent') || '[]'); } catch (_) {}
+
+const wakingEl = document.getElementById('waking');
+if (typeof io === 'undefined') { // the server was still asleep when the page asked for socket.io.js: keep the splash up and try again
+  wakingEl.classList.add('show');
+  document.getElementById('wakingBtn').onclick = () => location.reload();
+  setTimeout(() => location.reload(), 4000);
+  return;
+}
+const socket = io({ transports: ['websocket', 'polling'], reconnection: true, reconnectionAttempts: Infinity, reconnectionDelay: 800, reconnectionDelayMax: 4000, timeout: 20000 });
+
+/* ---------------- helpers ---------------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const fmt = n => { n = n || 0; return n >= 1e6 ? (n/1e6).toFixed(1).replace(/\.0$/,'')+'M' : n >= 1e4 ? Math.round(n/1e3)+'K' : n >= 1e3 ? (n/1e3).toFixed(1).replace(/\.0$/,'')+'K' : String(n); };
+const ago = ts => { const s = Math.max(0,(Date.now()-ts)/1000); return s<45?'now':s<3600?Math.round(s/60)+'m':s<86400?Math.round(s/3600)+'h':Math.round(s/86400)+'d'; };
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const fullTime = ts => { const d = new Date(ts); let h = d.getHours(); const ap = h>=12?'PM':'AM'; h = h%12||12; return `${h}:${String(d.getMinutes()).padStart(2,'0')} ${ap} · ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)} ${d.getFullYear()}`; };
+const joinedStr = ts => { const d = new Date(ts || Date.now()); return `Joined ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+const initials = n => String(n).split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
+const byHandle = h => Object.values(users).find(u => u.handle === String(h).toLowerCase());
+function toast(msg, onTap) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  t.onclick = onTap ? () => { t.classList.remove('show'); onTap(); } : null;
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (_) {} };
+/* ---------------- generated avatars (illustrated SVG, deterministic per handle) ---------------- */
+// Original artwork: flat shapes only, no photos or film stills. Characters get a recognisable look; everyone else is hashed from their handle.
+const HOUSE_PAL = {
+  Gryffindor: ['#4a0d12', '#c0392b', '#e2b719'], Slytherin: ['#0b3d24', '#2fa05c', '#c9d1d9'], Ravenclaw: ['#0d2150', '#4d7fe8', '#b9803b'], Hufflepuff: ['#4a3a05', '#f2c14e', '#1a1a1a'],
+  Staff: ['#2a1a55', '#8f7ac9', '#e6d9ff'], Ghost: ['#243447', '#8aa6bd', '#dff3ff'], Prophet: ['#4a1236', '#c678a6', '#f3d9e8'], Ministry: ['#4a1230', '#c0577f', '#f0c6d6']
+};
+const SKINS = ['#f6d5b8', '#e9b98f', '#d79a6b', '#b9794d', '#8d5a36', '#fbe3cf'];
+const HAIRS = ['#1b1a1a', '#3b2418', '#6b3f1f', '#a56a2c', '#d9b45b', '#c14a22', '#8c8c8c', '#e8e2c8'];
+const LOOKS = {
+  'h.potter':       { hair: '#17140f', style: 7, glasses: 'round', extra: ['scar'], skin: '#f6d5b8' },
+  'hgranger':       { hair: '#6b4423', style: 'bushy', glasses: 'round', skin: '#d79a6b' },
+  'ronweasley':     { hair: '#c14a22', style: 0, extra: ['freckles', 'bigsmile'], skin: '#fbe3cf' },
+  'ginny.w':        { hair: '#c14a22', style: 2, skin: '#fbe3cf', extra: ['freckles'] },
+  'fred.www':       { hair: '#c14a22', style: 1, extra: ['freckles', 'smirk'], skin: '#fbe3cf' },
+  'george.www':     { hair: '#c14a22', style: 0, extra: ['freckles', 'bigsmile'], skin: '#fbe3cf' },
+  'd.malfoy':       { hair: '#efe9d2', style: 'slick', extra: ['smirk'], skin: '#fbe3cf' },
+  'pansy.p':        { hair: '#17140f', style: 6, extra: ['smirk'], skin: '#f6d5b8' },
+  'luna.lovegood':  { hair: '#e8cf7a', style: 2, extra: ['dreamy', 'radish'], skin: '#fbe3cf' },
+  'nev.herbology':  { hair: '#6b4423', style: 0, extra: ['round'], skin: '#f6d5b8' },
+  'cho.c':          { hair: '#17140f', style: 2, skin: '#f6d5b8' },
+  'c.diggory':      { hair: '#4a2f1a', style: 1, extra: ['bigsmile'], skin: '#f6d5b8' },
+  'prof.snape':     { hair: '#0d0d0d', style: 'curtains', robe: '#0c0c10', pale: true, extra: ['frown'], skin: '#efe0cf' },
+  'm.mcgonagall':   { hair: '#9a9a9a', style: 3, glasses: 'square', hat: 'witch', hatColor: '#0f5a2b', robe: '#0f5a2b', extra: ['frown'], skin: '#f6d5b8' },
+  'albus.d':        { hair: '#f2f2ee', style: 2, glasses: 'half', hat: 'witch', hatColor: '#3b2a7a', beard: 'long', robe: '#3b2a7a', extra: ['stars'], skin: '#f1cfae' },
+  'hagrid':         { hair: '#2b1b10', style: 4, beard: 'big', beardColor: '#2b1b10', big: true, robe: '#4a3320', skin: '#c98a62' },
+  'a.filch':        { hair: '#8c8c8c', style: 5, extra: ['frown'], robe: '#2a2a2a', skin: '#e3c3a2' },
+  'rita.skeeter':   { hair: '#e8cf7a', style: 'curly', glasses: 'pointy', extra: ['lips'], robe: '#2b5d4a', skin: '#fbe3cf' },
+  'peeves':         { ghost: true, hair: '#222', style: 5, hat: 'jester', extra: ['bigsmile'], skin: '#dfeaf5' },
+  'g.lockhart':     { hair: '#e0bf5a', style: 'curly', extra: ['bigsmile'], robe: '#1b7f86', skin: '#fbe3cf' },
+  'd.umbridge':     { hair: '#7a5a3a', style: 'curly', extra: ['bow', 'bigsmile'], robe: '#e48ab5', skin: '#f6d5b8' },
+  'myrtle':         { ghost: true, hair: '#4a2f1a', style: 'pigtails', glasses: 'big', skin: '#dfeaf5' }
+};
+function hash32(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function randomLook(u) {
+  const r = rng(hash32(u.handle)), pick = a => a[Math.floor(r() * a.length)];
+  const look = { skin: pick(SKINS), hair: pick(HAIRS), style: Math.floor(r() * 7), extra: [] };
+  const g = r(); look.glasses = g < 0.22 ? 'round' : g < 0.32 ? 'square' : null;
+  if (r() < 0.2) look.extra.push('freckles');
+  look.extra.push(pick(['smile', 'smile', 'bigsmile', 'smirk']));
+  if (u.house === 'Staff' || u.kind === 'char' && u.house === 'Ministry') { look.hat = 'witch'; look.hatColor = (HOUSE_PAL[u.house] || HOUSE_PAL.Staff)[0]; }
+  if (u.house === 'Ghost') look.ghost = true;
+  return look;
+}
+function avatarSVG(u) {
+  const pal = HOUSE_PAL[u.house] || HOUSE_PAL.Staff, L = LOOKS[u.handle] || randomLook(u);
+  const ghost = L.ghost || u.house === 'Ghost', hs = L.big ? 1.18 : 1, ex = L.extra || [], has = k => ex.includes(k);
+  const skin = ghost ? '#dfeaf5' : L.pale ? '#efe0cf' : (L.skin || '#f6d5b8'), hair = L.hair || '#3b2418';
+  const robe = L.robe || pal[0], rx = 17 * hs, ry = 20 * hs, uid_ = 'g' + hash32(u.handle).toString(36);
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="${uid_}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${pal[0]}"/><stop offset="1" stop-color="${pal[1]}"/></linearGradient></defs><rect width="100" height="100" fill="url(#${uid_})"/><circle cx="82" cy="18" r="22" fill="#fff" opacity=".07"/>`;
+  if (ghost) s += '<g opacity=".74"><circle cx="50" cy="52" r="46" fill="#fff" opacity=".1"/>';
+  // body
+  if (ghost) s += `<path d="M18 100 Q18 72 50 70 Q82 72 82 100 L74 93 L66 100 L58 93 L50 100 L42 93 L34 100 L26 93Z" fill="#cfe3f3"/>`;
+  else {
+    s += `<path d="M10 100 Q12 74 36 70 L50 82 L64 70 Q88 74 90 100Z" fill="${robe}"/><path d="M41 70 L50 84 L59 70Z" fill="${L.robe ? '#e9e9e9' : '#f1f1f1'}"/>`;
+    if (!L.robe || L.robe === pal[0]) s += `<path d="M47 80 L53 80 L54 98 L46 98Z" fill="${pal[1]}"/><path d="M46.5 88 L53.5 88 L53.8 91 L46.2 91Z" fill="${pal[2]}"/><path d="M46.2 94 L53.8 94 L54 97 L46 97Z" fill="${pal[2]}"/>`;
+    if (L.robe === '#e48ab5') s += '<circle cx="50" cy="86" r="2" fill="#fff"/>';
+  }
+  s += `<rect x="44" y="60" width="12" height="14" rx="4" fill="${skin}"/>`;
+  // hair behind the head
+  const st = L.style;
+  if (st === 2 || st === 'curtains') s += `<path d="M27 46 Q25 18 50 17 Q75 18 73 46 L75 ${st === 'curtains' ? 76 : 80} Q62 86 50 80 Q38 86 25 ${st === 'curtains' ? 76 : 80}Z" fill="${hair}"/>`;
+  if (st === 6) s += `<path d="M28 46 Q27 20 50 19 Q73 20 72 46 L72 64 Q60 68 50 64 Q40 68 28 64Z" fill="${hair}"/>`;
+  if (st === 'bushy') for (const [x, y, r] of [[30, 38, 11], [70, 38, 11], [26, 52, 10], [74, 52, 10], [36, 24, 11], [64, 24, 11], [50, 20, 11], [30, 64, 8], [70, 64, 8]]) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${hair}"/>`;
+  if (st === 'curly') for (const [x, y] of [[32, 36], [68, 36], [28, 50], [72, 50], [40, 24], [60, 24], [50, 20]]) s += `<circle cx="${x}" cy="${y}" r="9" fill="${hair}"/>`;
+  if (st === 'pigtails') for (const x of [27, 73]) s += `<circle cx="${x}" cy="56" r="8" fill="${hair}"/>`;
+  // face
+  s += `<ellipse cx="32.5" cy="48" rx="3" ry="4" fill="${skin}"/><ellipse cx="67.5" cy="48" rx="3" ry="4" fill="${skin}"/><ellipse cx="50" cy="47" rx="${rx}" ry="${ry}" fill="${skin}"/>`;
+  if (has('freckles')) for (const [x, y] of [[41, 52], [44, 54], [38, 54], [59, 52], [56, 54], [62, 54]]) s += `<circle cx="${x}" cy="${y}" r=".9" fill="#a8693f"/>`;
+  // beard (under the mouth line, over the chin)
+  if (L.beard === 'big') s += `<path d="M31 51 Q29 82 50 86 Q71 82 69 51 Q62 63 50 62 Q38 63 31 51Z" fill="${L.beardColor}"/><path d="M40 57 Q50 53 60 57 Q50 62 40 57Z" fill="${L.beardColor}"/>`;
+  if (L.beard === 'long') s += `<path d="M33 52 Q27 92 50 99 Q73 92 67 52 Q58 64 50 62 Q42 64 33 52Z" fill="#f4f4f0"/><path d="M41 57 Q50 54 59 57 Q50 61 41 57Z" fill="#f4f4f0"/>`;
+  // eyes, brows, nose, mouth
+  const er = has('dreamy') ? 3.1 : 2.3;
+  s += `<ellipse cx="43" cy="46" rx="${er}" ry="${er + 0.4}" fill="#1b1b1b"/><ellipse cx="57" cy="46" rx="${er}" ry="${er + 0.4}" fill="#1b1b1b"/><circle cx="43.8" cy="45" r=".8" fill="#fff"/><circle cx="57.8" cy="45" r=".8" fill="#fff"/>`;
+  const brow = hair === '#efe9d2' || hair === '#f2f2ee' ? '#bdb7a0' : hair;
+  s += `<path d="M38 40 Q43 ${has('frown') ? 40 : 37} 47 40M53 40 Q57 ${has('frown') ? 40 : 37} 62 40" stroke="${brow}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+  s += '<path d="M50 47 Q48.5 52 50.5 53" stroke="#00000030" stroke-width="1.3" fill="none" stroke-linecap="round"/>';
+  const mouth = L.beard === 'big' ? '' : has('bigsmile') ? `<path d="M43 55 Q50 65 57 55Z" fill="#fff" stroke="#7a3b2e" stroke-width="1"/>` : has('smirk') ? '<path d="M44 57 Q51 59 57 54" stroke="#7a3b2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>' : has('frown') ? '<path d="M44 58 Q50 54.5 56 58" stroke="#7a3b2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>' : has('lips') ? '<path d="M44 56 Q50 61 56 56 Q50 54 44 56Z" fill="#c4223c"/>' : '<path d="M44 56 Q50 61 56 56" stroke="#7a3b2e" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+  s += mouth;
+  // front hair
+  const fh = { 0: 'M32 41 Q31 22 50 21 Q69 22 68 41 Q60 30 50 31 Q40 30 32 41Z', 1: 'M32 43 Q30 22 52 21 Q70 23 68 43 Q62 30 46 32 Q38 33 32 43Z', 2: 'M31 41 Q32 22 50 21 Q68 22 69 41 Q58 28 50 33 Q42 28 31 41Z', 3: 'M32 41 Q31 22 50 21 Q69 22 68 41 Q60 30 50 31 Q40 30 32 41Z', 5: 'M31 42 Q30 28 38 26 Q36 34 33 44Z M69 42 Q70 28 62 26 Q64 34 67 44Z', 6: 'M31 41 Q32 22 50 21 Q68 22 69 41 Q58 28 50 33 Q42 28 31 41Z', 7: 'M31 42 Q28 22 50 20 Q72 22 69 42 Q66 31 56 33 L58 38 Q50 30 44 36 Q36 32 31 42Z', slick: 'M31 41 Q30 21 52 20 Q70 22 69 41 Q64 30 50 29 Q40 29 31 41Z', curtains: 'M31 44 Q30 22 50 21 Q70 22 69 44 Q62 31 50 33 Q38 31 31 44Z', bushy: 'M33 38 Q40 24 50 26 Q60 24 67 38 Q58 32 50 34 Q42 32 33 38Z' };
+  if (st === 3) s += `<circle cx="50" cy="15" r="7" fill="${hair}"/>`;
+  if (st === 4) for (const [x, y] of [[36, 28], [47, 23], [58, 24], [66, 32]]) s += `<circle cx="${x}" cy="${y}" r="8" fill="${hair}"/>`;
+  if (st === 'curly') for (const [x, y] of [[38, 30], [50, 25], [62, 30]]) s += `<circle cx="${x}" cy="${y}" r="8" fill="${hair}"/>`;
+  if (st === 'pigtails') s += `<path d="${fh[0]}" fill="${hair}"/>`;
+  else if (fh[st] !== undefined) s += `<path d="${fh[st]}" fill="${hair}"/>`;
+  if (has('scar')) s += '<path d="M52 33 l-2.5 4.5 l3.2 0 l-2.5 4.5" stroke="#b3282d" stroke-width="1.3" fill="none" stroke-linejoin="round"/>';
+  // glasses
+  const gl = L.glasses, gs = '#222';
+  if (gl === 'round') s += `<g fill="none" stroke="${gs}" stroke-width="1.4"><circle cx="43" cy="46" r="5.6"/><circle cx="57" cy="46" r="5.6"/><path d="M48.6 45.5 Q50 44.5 51.4 45.5"/></g>`;
+  if (gl === 'big') s += `<g fill="#ffffff22" stroke="${gs}" stroke-width="1.5"><circle cx="43" cy="46" r="7"/><circle cx="57" cy="46" r="7"/><path d="M50 45 L50 46"/></g>`;
+  if (gl === 'square') s += `<g fill="none" stroke="${gs}" stroke-width="1.4"><rect x="37" y="41.5" width="11" height="9" rx="1.5"/><rect x="52" y="41.5" width="11" height="9" rx="1.5"/><path d="M48 45 L52 45"/></g>`;
+  if (gl === 'half') s += `<g fill="none" stroke="#b9a15a" stroke-width="1.4"><path d="M37.5 45 L48.5 45 Q47 51.5 43 51.5 Q39 51.5 37.5 45Z"/><path d="M51.5 45 L62.5 45 Q61 51.5 57 51.5 Q53 51.5 51.5 45Z"/></g>`;
+  if (gl === 'pointy') s += `<g fill="none" stroke="#c4223c" stroke-width="1.5"><path d="M36 43 L48 44 Q47 50 42 50 Q37 49 36 43Z"/><path d="M64 43 L52 44 Q53 50 58 50 Q63 49 64 43Z"/></g>`;
+  if (has('radish')) s += '<circle cx="31" cy="55" r="2.6" fill="#e0457b"/><circle cx="69" cy="55" r="2.6" fill="#e0457b"/>';
+  if (has('bow')) s += '<path d="M50 22 L40 17 L40 27Z M50 22 L60 17 L60 27Z" fill="#f06fa8"/><circle cx="50" cy="22" r="2.4" fill="#d9487f"/>';
+  // hats
+  if (L.hat === 'witch') s += `<ellipse cx="50" cy="31" rx="29" ry="6" fill="${L.hatColor}"/><path d="M33 31 Q40 15 53 1 Q54 17 67 31Z" fill="${L.hatColor}"/><path d="M34 29 Q50 33 66 29" stroke="${pal[2]}" stroke-width="2.2" fill="none"/>`;
+  if (L.hat === 'witch' && has('stars')) s += '<g fill="#f6d65a"><circle cx="48" cy="20" r="1.4"/><circle cx="56" cy="14" r="1.1"/><circle cx="45" cy="27" r="1"/></g>';
+  if (L.hat === 'jester') s += '<path d="M32 30 Q28 12 18 12 Q26 20 36 22Z" fill="#c0392b"/><path d="M68 30 Q72 12 82 12 Q74 20 64 22Z" fill="#2fa05c"/><path d="M34 31 Q50 20 66 31Z" fill="#f2c14e"/><circle cx="18" cy="12" r="2.6" fill="#f2c14e"/><circle cx="82" cy="12" r="2.6" fill="#f2c14e"/>';
+  if (ghost) s += '</g>';
+  return s + '</svg>';
+}
+
+// every avatar is a CSS class with a background image, so feeds stay light however many cards repeat the same face
+const avSheet = (() => { const st = document.createElement('style'); document.head.appendChild(st); return st.sheet; })();
+const avMap = new Map();
+function avClass(u) {
+  const url = u.avatarUrl;
+  const key = url ? 'u:' + url : 'g:' + u.handle + '|' + u.house + '|' + u.kind;
+  let c = avMap.get(key);
+  if (!c) {
+    c = 'avc' + avMap.size; avMap.set(key, c);
+    const img = url ? 'url("' + url.replace(/"/g, '') + '")' : 'url("data:image/svg+xml,' + encodeURIComponent(avatarSVG(u)) + '")';
+    try { avSheet.insertRule('.' + c + '{background-image:' + img + '}', avSheet.cssRules.length); } catch (_) {}
+  }
+  return c;
+}
+function avatar(u, cls = '') {
+  if (!u) return '';
+  return `<div class="av ${cls} ${avClass(u)}" data-user="${u.id}">${u.kind==='player'&&onlineSet.has(u.id)?'<span class="dot"></span>':''}</div>`;
+}
+const hdot = u => `<span class="hdot" title="${esc(u.house)}" style="background:${HC[u.house]||'var(--staff)'}"></span>`;
+function linkify(text) {
+  let s = esc(text);
+  // only real accounts become links; unknown handles stay plain text
+  s = s.replace(/(^|[\s(>])@([a-z0-9_.]{2,20})/gi, (m, pre, h) => {
+    const tail = (h.match(/\.+$/) || [''])[0];
+    const hh = h.slice(0, h.length - tail.length);
+    return byHandle(hh) ? `${pre}<span class="lnk" data-handle="${hh.toLowerCase()}">@${hh}</span>${tail}` : m;
+  });
+  s = s.replace(/(^|[\s(>])#(\w{2,40})/g, (m, pre, t) => `${pre}<span class="lnk" data-tag="${esc(t)}">#${t}</span>`);
+  return s;
+}
+
+/* ---------------- post card ---------------- */
+function quoteHTML(q) {
+  if (!q) return `<div class="quote"><div class="qtxt" style="color:var(--dim)">This post was deleted.</div></div>`;
+  const a = users[q.authorId];
+  if (!a) return '';
+  return `<div class="quote" data-quote="${q.id}"><div class="qmeta">${avatar(a,'sm')}<span class="nm">${esc(a.name)}</span>${chk(a)}<span class="hd">@${esc(a.handle)} · ${ago(q.ts)}</span></div><div class="qtxt">${linkify(q.text)}</div></div>`;
+}
+function actRow(p, big) {
+  const liked = me && (p.likedBy||[]).includes(me.id);
+  const rptd = me && (p.repostedBy||[]).some(r => r.id === me.id);
+  const bmk = bookmarks.has(p.id);
+  const rtCount = (p.reposts||0) + (p.quoteCount||0);
+  return `<div class="actrow">
+    <button class="a c-reply" data-act="reply" aria-label="Reply">${I.reply}<span>${p.replyCount?fmt(p.replyCount):''}</span></button>
+    <button class="a c-rt ${rptd?'on':''}" data-act="rt" aria-label="Repost">${I.rt}<span>${rtCount?fmt(rtCount):''}</span></button>
+    <button class="a c-like ${liked?'on':''}" data-act="like" aria-label="Like">${liked?I.like_f:I.like_o}<span>${p.likes?fmt(p.likes):''}</span></button>
+    <span class="a c-views">${I.views}<span>${p.views?fmt(p.views):''}</span></span>
+    <span class="grp"><button class="a c-bmk ${bmk?'on':''}" data-act="bmk" aria-label="Bookmark">${bmk?I.bmk_f:I.bmk_o}</button><button class="a" data-act="share" aria-label="Share">${I.share}</button></span>
+  </div>`;
+}
+// o: {ctx, pinned, showReplyTo, connector, big}
+function postHTML(p, o = {}) {
+  const a = users[p.authorId]; if (!a) return '';
+  const par = p.parentId ? posts[p.parentId] : null;
+  const pa = par ? users[par.authorId] : null;
+  const q = p.quoteId ? posts[p.quoteId] : null;
+  let ctx = '';
+  if (o.ctx) ctx = `<div class="ctx">${I.rt}${esc(o.ctx)}</div>`;
+  else if (o.pinned) ctx = `<div class="ctx">${I.pin}Pinned</div>`;
+  return `<article class="post${o.cls ? ' ' + o.cls : ''}" data-post="${p.id}">
+    ${ctx}
+    <div class="prow"><div class="gutter">${avatar(a)}${o.connector?'<div class="tl"></div>':''}</div><div class="pbody">
+      <div class="meta"><span class="who"><span class="nm" data-user="${a.id}">${esc(a.name)}</span>${chk(a)}${hdot(a)}<span class="hd">@${esc(a.handle)} · ${ago(p.ts)}</span></span><button class="more" data-act="menu" aria-label="More">${I.dots}</button></div>
+      ${pa && o.showReplyTo ? `<div class="rto">Replying to <span class="lnk" data-user="${pa.id}">@${esc(pa.handle)}</span></div>` : ''}
+      <div class="txt">${linkify(p.text)}</div>
+      ${p.quoteId ? quoteHTML(q) : ''}
+      ${p.verdict ? `<span class="verdict v-${p.verdict}">${p.verdict==='won'?'Duel won':p.verdict==='lost'?'Duel lost':p.verdict}</span>` : ''}
+      ${p.storyTitle && !p.parentId ? `<div class="story">🎭 ${esc(p.storyTitle)}</div>` : ''}
+      ${activity[p.id] ? `<div class="typing"><span class="dots"><i></i><i></i><i></i></span>${esc(activity[p.id])}</div>` : ''}
+      ${actRow(p)}
+    </div></div></article>`;
+}
+function detailHTML(p) {
+  const a = users[p.authorId]; if (!a) return '';
+  const q = p.quoteId ? posts[p.quoteId] : null;
+  const anc = []; let c = p.parentId && posts[p.parentId];
+  while (c && anc.length < 8) { anc.unshift(c); c = c.parentId && posts[c.parentId]; }
+  const replies = Object.values(posts).filter(x => x.parentId === p.id).sort((x,y) => x.ts - y.ts);
+  const pa = p.parentId ? users[posts[p.parentId]?.authorId] : null;
+  return (anc.length ? anc.map(x => postHTML(x, { connector: true })).join('') : '') +
+  `<div data-post="${p.id}" class="focus">
+    <div class="dmeta">${avatar(a)}<div class="names"><div class="nmrow"><span class="nm" data-user="${a.id}">${esc(a.name)}</span>${chk(a)}${hdot(a)}</div><span class="hd">@${esc(a.handle)}</span></div><button class="more" style="color:var(--dim)" data-act="menu">${I.dots}</button></div>
+    ${pa ? `<div class="rto" style="padding:0 16px">Replying to <span class="lnk" data-user="${pa.id}">@${esc(pa.handle)}</span></div>` : ''}
+    <div class="dtxt">${linkify(p.text)}</div>
+    ${p.quoteId ? `<div style="padding:0 16px 10px">${quoteHTML(q)}</div>` : ''}
+    ${p.verdict ? `<div style="padding:0 16px 10px"><span class="verdict v-${p.verdict}">${p.verdict==='won'?'Duel won':p.verdict==='lost'?'Duel lost':p.verdict}</span></div>` : ''}
+    <div class="dtime">${fullTime(p.ts)}</div>
+    <div class="dstats"><span><b>${fmt(p.reposts||0)}</b> Reposts</span><span><b>${fmt(p.quoteCount||0)}</b> Quotes</span><span><b>${fmt(p.likes||0)}</b> Likes</span><span><b>${fmt(p.views||0)}</b> Views</span></div>
+    <div class="dacts">${actRow(p, true)}</div>
+    ${activity[p.id] ? `<div class="typing" style="padding:10px 16px">${'<span class="dots"><i></i><i></i><i></i></span>'}${esc(activity[p.id])}</div>` : ''}
+  </div>` +
+  (replies.map(x => postHTML(x)).join('') || '<div class="empty" style="padding:36px">No replies yet. Start something.</div>');
+}
+
+/* ---------------- profile ---------------- */
+function profileHTML(u, ptab = 'posts') {
+  const mine = me && u.id === me.id;
+  const f = me && me.following.includes(u.id);
+  const followsYou = me && (u.following||[]).includes(me.id);
+  const all = Object.values(posts);
+  let list;
+  if (ptab === 'replies') list = all.filter(p => p.authorId === u.id && p.parentId).sort((a,b) => b.ts - a.ts);
+  else if (ptab === 'likes') list = all.filter(p => (p.likedBy||[]).includes(u.id)).sort((a,b) => b.ts - a.ts);
+  else {
+    const own = all.filter(p => p.authorId === u.id && !p.parentId).map(p => ({ p, ts: p.ts }));
+    const rts = all.filter(p => (p.repostedBy||[]).some(r => r.id === u.id)).map(p => ({ p, ts: (p.repostedBy.find(r => r.id === u.id)||{}).ts || p.ts, rt: true }));
+    list = own.concat(rts).sort((a,b) => b.ts - a.ts);
+  }
+  const hc = HC[u.house] || 'var(--staff)';
+  const followingCount = (u.following||[]).length;
+  const body = ptab === 'posts'
+    ? (list.map(it => postHTML(it.p, it.rt ? { ctx: (it.p.repostedBy.find(r=>r.id===u.id) && u.id===me?.id) ? 'You reposted' : `${u.name} reposted` } : {})).join('') || '<div class="empty">No posts yet.</div>')
+    : (list.map(p => postHTML(p, { showReplyTo: true })).join('') || `<div class="empty">${ptab==='likes'?'No likes yet.':'No replies yet.'}</div>`);
+  return `<div class="banner" style="${bannerStyle(u)}"></div>
+  <div class="pfhead">
+    <div class="pftop">${avatar(u,'xl')}${mine
+      ? `<button class="pillbtn outline" data-nav="editprofile">Edit profile</button>`
+      : `<span class="pfbtns"><button class="iconbtn" data-dm="${u.id}" aria-label="Message">${I.mail_o}</button><button class="pillbtn ${f?'outline':''}" data-follow="${u.id}">${f?'Following':'Follow'}</button></span>`}</div>
+    <div class="pfname">${esc(u.name)}${chk(u)}</div>
+    <div class="pfhd">@${esc(u.handle)}${followsYou && !mine ? '<span class="fchip">Follows you</span>' : ''}</div>
+    ${u.bio ? `<div class="pfbio">${linkify(u.bio)}</div>` : ''}
+    <div class="pfline"><span class="hl">${hdot(u)}${esc(u.house)}${u.kind==='npc'&&u.year?` · Year ${u.year}`:''}</span><span class="hl">${I.cal}${joinedStr(u.joined)}</span></div>
+    <div class="pfcounts"><span><b>${fmt(followingCount)}</b> Following</span><span><b>${fmt(u.followers)}</b> Followers</span></div>
+    ${u.kind === 'player' ? `<div class="gstats">
+      <span class="hypew">Hype <b>${u.hype}</b><span class="hbar"><div style="width:${u.hype}%"></div></span></span>
+      <span class="gs">🏆 <b>${u.housePoints}</b> pts</span><span class="gs">🪙 <b>${fmt(u.galleons)}</b></span>
+    </div>` : ''}
+  </div>
+  <div class="subtabs ptabs" data-uid="${u.id}"><button data-pt="posts" class="${ptab==='posts'?'on':''}">Posts</button><button data-pt="replies" class="${ptab==='replies'?'on':''}">Replies</button><button data-pt="likes" class="${ptab==='likes'?'on':''}">Likes</button></div>
+  <div class="pfposts">${body}</div>`;
+}
+
+/* ---------------- feed ---------------- */
+function feedItems() {
+  const pend = new Set(pending);
+  const all = Object.values(posts).filter(p => !p.parentId && !pend.has(p.id));
+  const items = [];
+  const followSet = new Set([me.id, ...me.following]);
+  for (const p of all) {
+    const reps = (p.repostedBy||[]).filter(r => r.id === me.id || followSet.has(r.id) || users[r.id]?.kind === 'player');
+    const rep = reps.sort((a,b) => b.ts - a.ts)[0];
+    if (feedMode === 'following') {
+      const repFollowed = (p.repostedBy||[]).filter(r => followSet.has(r.id)).sort((a,b) => b.ts - a.ts)[0];
+      if (followSet.has(p.authorId)) items.push({ p, ts: Math.max(p.ts, repFollowed?repFollowed.ts:0), rep: repFollowed && repFollowed.ts > p.ts ? repFollowed : null });
+      else if (repFollowed) items.push({ p, ts: repFollowed.ts, rep: repFollowed });
+    } else {
+      items.push({ p, ts: rep && rep.ts > p.ts ? rep.ts : p.ts, rep: rep && rep.ts > p.ts ? rep : null });
+    }
+  }
+  // bot-vs-bot threads fill the feed, but anything involving a player stays on top: player posts get a long head start, threads a player joined or mentioned me in a shorter one
+  const involved = new Set();
+  for (const p of Object.values(posts)) if (users[p.authorId]?.kind === 'player' || (p.mentions || []).includes(me.id)) involved.add(p.rootId || p.id);
+  for (const it of items) it.key = it.ts + (users[it.p.authorId]?.kind === 'player' ? 60 * 60e3 : involved.has(it.p.id) ? 40 * 60e3 : 0);
+  return items.sort((a,b) => b.key - a.key).slice(0, 180);
+}
+function renderFeed() {
+  if (!me) return;
+  let html = '';
+  let items = feedItems();
+  if (feedMode === 'foryou') {
+    const cutoff = Date.now() - 30 * 60000;
+    const pinned = [];
+    for (const fid of me.following) {
+      if (users[fid]?.kind !== 'player') continue;
+      const latest = items.filter(it => it.p.authorId === fid && !it.rep).sort((a,b) => b.p.ts - a.p.ts)[0];
+      if (latest && latest.p.ts > cutoff) pinned.push(latest);
+    }
+    const pinSet = new Set(pinned.map(it => it.p.id));
+    items = items.filter(it => !pinSet.has(it.p.id));
+    html = pinned.map(it => postHTML(it.p, { pinned: true })).join('');
+  }
+  // bot scenes show as a conversation: the root plus the latest two replies, joined by the thread line
+  const kids = {};
+  for (const p of Object.values(posts)) if (p.sceneId && p.parentId) (kids[p.rootId || p.parentId] = kids[p.rootId || p.parentId] || []).push(p);
+  html += items.map(it => {
+    const o = it.rep ? { ctx: it.rep.id === me.id ? 'You reposted' : `${users[it.rep.id]?.name || '?'} reposted` } : {};
+    const prev = (kids[it.p.id] || []).sort((a, b) => a.ts - b.ts).slice(-2);
+    if (!prev.length) return postHTML(it.p, o);
+    return postHTML(it.p, { ...o, connector: true, cls: 'grp' }) + prev.map((r, i) => postHTML(r, { showReplyTo: true, connector: i < prev.length - 1, cls: i < prev.length - 1 ? 'grp' : '' })).join('');
+  }).join('');
+  if (!html) html = feedMode === 'following'
+    ? '<div class="empty"><b>Welcome to Following</b>Posts from people you follow — players and castle accounts — show up here. Find people in Search.</div>'
+    : '<div class="empty"><b>Quiet castle</b>Post something to wake everyone up.</div>';
+  $('#feedList').innerHTML = html;
+}
+function renderPill() {
+  const pill = $('#newPill');
+  if (!pending.length || tab !== 'home' || !rootVisible()) { pill.classList.remove('show'); return; }
+  const authors = [...new Set(pending.map(id => posts[id]?.authorId).filter(Boolean))].slice(0, 3);
+  $('#pillAvs').innerHTML = authors.map(id => avatar(users[id])).join('');
+  $('#pillTxt').textContent = `Show ${pending.length > 99 ? '99+' : pending.length} post${pending.length > 1 ? 's' : ''}`;
+  pill.classList.add('show');
+}
+function flushPending() {
+  if (!pending.length) return;
+  pending = [];
+  renderFeed(); renderPill();
+  $('#scr-home').scrollTo({ top: 0, behavior: 'smooth' });
+}
+$('#newPill').onclick = flushPending;
+
+/* ---------------- explore ---------------- */
+function saveRecent(q) {
+  q = q.trim(); if (!q) return;
+  recents = [q, ...recents.filter(x => x !== q)].slice(0, 6);
+  try { localStorage.setItem('owl_recent', JSON.stringify(recents)); } catch (_) {}
+}
+function renderExplore() {
+  if (!me) return;
+  $('#exAvatar').innerHTML = avatar(me, 'md');
+  const q = $('#q').value.trim().toLowerCase().replace(/^@/, '');
+  const all = Object.values(users);
+  let html = '';
+  if (!q) {
+    if (recents.length) html += `<div class="sect" style="display:flex;justify-content:space-between;align-items:center">Recent<button id="clearRec" style="color:var(--blue);font-size:14px;font-weight:400">Clear all</button></div><div class="chips">${recents.map(r => `<button class="chip" data-q="${esc(r)}">${esc(r)}</button>`).join('')}</div>`;
+    html += '<div class="sect">Trending at Hogwarts</div>';
+    html += events.filter(ev => ev.until > Date.now() && posts[ev.postId]).sort((a,b) => b.intensity - a.intensity).map(ev => {
+      const left = (ev.until - Date.now()) / Math.max(1, ev.until - ev.startedAt);
+      const hu = users[ev.playerId];
+      return `<div class="trow hot" data-post="${ev.postId}"><div class="k">🔥 Hype wave · ${left > 0.6 ? 'Heating up' : left > 0.25 ? 'Still trending' : 'Cooling down'}</div><div class="t">${esc(ev.title)}</div><div class="n">${fmt(ev.posts)} posts${hu ? ' · ' + esc(hu.house) : ''}</div></div>`;
+    }).join('');
+    if (trend) html += `<div class="trow" data-q="${esc(trend.title)}"><div class="k">Trending at Hogwarts</div><div class="t">${esc(trend.title)}</div><div class="n">${esc(trend.desc)}</div></div>`;
+    const hot = Object.values(posts).filter(p => !p.parentId && (p.replyCount||0) > 0).sort((a,b) => (b.replyCount - a.replyCount) || (b.ts - a.ts)).slice(0, 5);
+    html += hot.map((p,i) => `<div class="trow" data-post="${p.id}"><div class="k">${i+2} · Trending</div><div class="t">${esc(p.text.slice(0, 52))}${p.text.length>52?'…':''}</div><div class="n">${fmt(p.replyCount)} replies · @${esc(users[p.authorId]?.handle||'')}</div></div>`).join('');
+    const sugg = all.filter(u => u.id !== me.id && !me.following.includes(u.id) && u.kind !== 'npc').sort((a,b) => b.followers - a.followers).slice(0, 6);
+    const pls = all.filter(u => u.id !== me.id && u.kind === 'player');
+    html += '<div class="sect">Who to follow</div>' + pls.concat(sugg.filter(u => u.kind !== 'player')).slice(0, 7).map(userRow).join('');
+  } else {
+    const ures = all.filter(u => u.id !== me.id && (u.name.toLowerCase().includes(q) || u.handle.includes(q)))
+      .sort((a,b) => (b.kind==='player')-(a.kind==='player') || (b.kind==='char')-(a.kind==='char') || b.followers-a.followers).slice(0, 12);
+    if (ures.length) html += '<div class="sect">People</div>' + ures.map(userRow).join('');
+    const pres = Object.values(posts).filter(p => p.text.toLowerCase().includes(q)).sort((a,b) => b.ts - a.ts).slice(0, 30);
+    if (pres.length) html += '<div class="sect">Posts</div>' + pres.map(p => postHTML(p, { showReplyTo: true })).join('');
+    if (!ures.length && !pres.length) html = `<div class="empty"><b>No results for "${esc(q)}"</b>Try searching for a name, handle or word.</div>`;
+  }
+  $('#exploreList').innerHTML = html;
+}
+function userRow(u) {
+  const f = me.following.includes(u.id);
+  const sub = u.kind === 'player' ? `${fmt(u.followers)} followers` : u.bio || `${fmt(u.followers)} followers`;
+  return `<div class="urow" data-user="${u.id}">${avatar(u)}<div class="uinfo"><div class="meta"><span class="nm">${esc(u.name)}</span>${chk(u)}${hdot(u)}</div><div class="sub">@${esc(u.handle)} · ${esc(sub)}</div></div>${u.id !== me.id ? `<button class="fbtn${f?' following':''}" data-follow="${u.id}">${f?'Following':'Follow'}</button>` : ''}</div>`;
+}
+
+/* ---------------- notifications ---------------- */
+function groupNotifs(list) {
+  const groups = [], byKey = {};
+  for (const n of list) {
+    const key = (n.type === 'like' || n.type === 'repost') && n.postId ? n.type + ':' + n.postId : n.id;
+    if (byKey[key]) { byKey[key].others.push(n); continue; }
+    const g = { n, others: [] }; byKey[key] = g; groups.push(g);
+  }
+  return groups;
+}
+function notifFilter(n) {
+  if (ntab === 'verified') return users[n.fromId]?.kind === 'char';
+  return true;
+}
+function renderNotifs() {
+  if (ntab === 'mentions') { // every post that @mentions me, newest first
+    const list = Object.values(posts).filter(p => (p.mentions || []).includes(me.id) && p.authorId !== me.id).sort((a,b) => b.ts - a.ts).slice(0, 100);
+    $('#notifList').innerHTML = list.length ? list.map(p => postHTML(p, { showReplyTo: true })).join('')
+      : '<div class="empty"><b>Nothing to see here — yet</b>When someone @mentions you, their post shows up here.</div>';
+    return;
+  }
+  const list = notifs.filter(notifFilter).slice(0, 200);
+  const groups = groupNotifs(list);
+  const ICN = { rumour: I.starN, exposed: I.boltN, like: I.heartN, repost: I.rtN, follow: I.userN, verdict: I.boltN, duel: I.boltN, prophet: I.starN, join: I.userN, friend_post: I.owlN, friend_viral: I.starN, system: I.owlN, mention: I.userN, reply: I.reply, quote: I.rtN, trending: I.boltN, unfollow: I.userN, milestone: I.starN };
+  $('#notifList').innerHTML = groups.length ? groups.map(g => {
+    const n = g.n;
+    const from = users[n.fromId];
+    const extra = g.others.length;
+    const avs = [n, ...g.others].map(x => users[x.fromId]).filter(Boolean).slice(0, 6);
+    let text;
+    if (n.type === 'like' && from) text = `<b>${esc(from.name)}</b>${extra ? ` and ${extra} other${extra>1?'s':''}` : ''} liked your post`;
+    else if (n.type === 'repost' && from) text = `<b>${esc(from.name)}</b>${extra ? ` and ${extra} other${extra>1?'s':''}` : ''} reposted your post`;
+    else text = esc(n.text);
+    const excerpt = n.postId && posts[n.postId] ? `<div class="ex">${esc(posts[n.postId].text)}</div>` : '';
+    return `<div class="nrow${n.read ? '' : ' unread'}" data-notif="${n.id}"><div class="nicon">${ICN[n.type] || I.owlN}</div><div class="nbody">${avs.length && n.type !== 'reply' ? `<div class="navs">${avs.map(u => avatar(u,'md')).join('')}</div>` : ''}<div class="t">${text}</div>${excerpt}<div class="tm">${ago(n.ts)}</div></div></div>`;
+  }).join('') : '<div class="empty"><b>Nothing to see here — yet</b>Likes, mentions, reposts and verdicts on your posts will show up here.</div>';
+}
+
+/* ---------------- house cup / bookmarks / settings pages ---------------- */
+function cupHTML() {
+  const cup = {}; HOUSES.forEach(h => cup[h] = 0);
+  Object.values(users).forEach(u => { if (cup[u.house] !== undefined) cup[u.house] += u.housePoints || 0; });
+  const max = Math.max(1, ...Object.values(cup).map(Math.abs));
+  const list = Object.values(users).filter(u => u.kind !== 'npc').sort((a,b) => b.followers - a.followers);
+  return '<div class="sect" style="font-size:16px">House Cup</div><div class="cup">' +
+    HOUSES.slice().sort((a,b) => cup[b]-cup[a]).map(h => `<div class="h"><span style="color:${HC[h]};font-weight:700">${h}</span><b>${cup[h]}</b></div><div class="b"><div style="width:${Math.max(2, Math.abs(cup[h])/max*100)}%;background:${HC[h]}"></div></div>`).join('') +
+    '</div><div class="sect" style="font-size:16px">Most followed</div>' +
+    list.slice(0, 40).map((u,i) => `<div class="rk" data-user="${u.id}"><span class="n">${i+1}</span>${avatar(u)}<div style="min-width:0"><div class="meta"><span class="nm">${esc(u.name)}</span>${chk(u)}</div><div class="hd" style="font-size:13px">@${esc(u.handle)}</div></div><span class="f">${fmt(u.followers)}</span></div>`).join('');
+}
+function bookmarksHTML() {
+  const list = [...bookmarks].map(id => posts[id]).filter(Boolean).sort((a,b) => b.ts - a.ts);
+  return list.map(p => postHTML(p, { showReplyTo: true })).join('') || '<div class="empty"><b>Save posts for later</b>Bookmark posts with the ribbon icon. Only you can see them.</div>';
+}
+function settingsHTML() {
+  return `<button class="mrow" data-set="install">${I.phone}Install on your phone</button>
+  <button class="mrow danger" data-set="logout">${I.logout}Log out</button>
+  <div style="padding:14px 20px;color:var(--dim);font-size:13px">Owl Feed · a Hogwarts social game. Scores, duels and verdicts are decided by the castle.</div>`;
+}
+/* ---------------- router: ONE stack, ONE visible page ---------------- */
+// stack = [tab root, ...pages, ...overlays]. Every entry owns exactly one history slot (state.d = its depth).
+const TAB_PATHS = { home: '/home', explore: '/explore', notifs: '/notifications', msgs: '/messages' };
+const TAB_EL = { home: '#scr-home', explore: '#scr-explore', notifs: '#scr-notifs', msgs: '#scr-msgs', profile: '#scr-profile' };
+const tabPath = t => t === 'profile' ? `/u/${me ? me.handle : 'me'}` : TAB_PATHS[t];
+const tabEntry = t => ({ kind: 'tab', type: t, path: tabPath(t), el: $(TAB_EL[t]) });
+const stack = [];
+const tabScroll = {};
+let swallowPop = 0, pendingPath = null, swapNext = false;
+const topEntry = () => stack[stack.length - 1];
+const topPage = () => { for (let i = stack.length - 1; i >= 0; i--) if (stack[i].kind !== 'overlay') return stack[i]; return null; };
+const pageEntry = () => { const e = topPage(); return e && e.kind === 'page' ? e : null; }; // the visible page, when it is not a tab root
+const rootVisible = () => { const e = topPage(); return !e || e.kind === 'tab'; };
+
+const scroller = e => e.kind === 'tab' ? e.el : e.type === 'compose' ? null : e.el.querySelector('.pgscroll, .chatscroll');
+const isShown = e => e.el && e.el.getClientRects().length > 0;
+function saveScroll(e) { const s = e && scroller(e); if (s && isShown(e)) e.scroll = s.scrollTop; }
+
+function histPush(path) {
+  const st = { d: stack.length - 1 };
+  if (swapNext) { swapNext = false; history.replaceState(st, '', path); } // reuse the slot of the entry we just closed
+  else history.pushState(st, '', path);
+}
+function pushRoute(e) {
+  saveScroll(topPage());
+  stack.push(e);
+  histPush(e.path || location.pathname);
+  if (e.kind !== 'overlay') showTop(true);
+}
+function pushOverlay(close) { stack.push({ kind: 'overlay', close, path: location.pathname }); histPush(location.pathname); }
+
+function showEntry(e, anim) {
+  if (e.kind === 'tab') { e.el.classList.add('active'); const s = e.scroll ?? tabScroll[e.type]; if (s) e.el.scrollTop = s; return; }
+  if (e.type === 'compose') { e.el.classList.add('show'); fitCompose(); return; }
+  e.el.style.display = '';
+  if (e.stale) { e.stale = false; renderPageEntry(e); }
+  const sc = scroller(e);
+  if (sc && e.scroll != null && !anim) sc.scrollTop = e.scroll;
+  if (!e.el.classList.contains('in')) requestAnimationFrame(() => e.el.classList.add('in'));
+}
+function hideEntry(e) {
+  if (e.kind === 'tab') e.el.classList.remove('active');
+  else if (e.type === 'compose') e.el.classList.remove('show');
+  else e.el.style.display = 'none';
+}
+// exactly one page is visible once the slide animation has settled
+function showTop(anim) {
+  const t = topPage();
+  if (!t) return;
+  for (const e of stack) {
+    if (e.kind === 'overlay') continue;
+    clearTimeout(e.hideT);
+    if (e === t) showEntry(e, anim);
+    else e.hideT = setTimeout(() => hideEntry(e), anim ? 240 : 0);
+  }
+  tab = stack[0].type;
+  $('#topbar').style.display = t.kind === 'tab' && t.type === 'home' ? '' : 'none';
+  if (t.kind === 'tab' && t.type === 'home') $('#topbar').classList.remove('hide');
+  hideMention(); renderNav(); updateFab(); renderPill();
+  if (t.kind === 'tab') renderAll();
+  if (t.kind === 'page' && t.type === 'dm') markConvRead(convs[t.data]);
+}
+function destroyEntry(e, animate) {
+  clearTimeout(e.hideT);
+  if (e.kind === 'tab') return;
+  if (e.type === 'compose') { const c = e.el; c.classList.remove('show'); c.style.height = c.style.top = c.style.bottom = ''; hideMention(); cText.blur(); return; }
+  const el = e.el;
+  el.style.transform = '';
+  if (animate) { el.style.pointerEvents = 'none'; el.classList.remove('in'); setTimeout(() => el.remove(), 230); } else el.remove();
+}
+function popRoute() { // UI side of one "back": the history slot is already gone
+  const e = stack.pop();
+  if (!e) return;
+  if (e.kind === 'overlay') { try { e.close && e.close(); } catch (_) {} return; }
+  destroyEntry(e, true);
+  showTop(false);
+}
+function uiBack() { if (stack.length > 1) history.back(); }
+// close the top overlay now and let whatever opens next reuse its history slot (drawer/sheet -> page)
+function swapOverlay() { const e = topEntry(); if (e && e.kind === 'overlay') { stack.pop(); try { e.close && e.close(); } catch (_) {} swapNext = true; } }
+function settleSwap() { if (swapNext) { swapNext = false; history.back(); } }
+
+window.addEventListener('popstate', e => {
+  if (swallowPop > 0) { swallowPop--; if (swallowPop === 0 && pendingPath) { history.replaceState({ d: 0 }, '', pendingPath); pendingPath = null; } return; }
+  if (!stack.length) return;
+  const d = e.state && typeof e.state.d === 'number' ? e.state.d : 0;
+  while (stack.length - 1 > d) popRoute();
+  if (d > stack.length - 1) bootRoute(true); // forward navigation: rebuild from the URL
+});
+
+// tapping a tab clears the stack to that tab's root; tapping the current tab scrolls to top
+function goTab(t) {
+  if (!me) return;
+  if (stack.length === 1 && stack[0].type === t) {
+    stack[0].el.scrollTo({ top: 0, behavior: 'smooth' });
+    if (t === 'home') flushPending();
+    return;
+  }
+  const depth = stack.length - 1;
+  const prev = stack[0];
+  if (prev) { saveScroll(topPage()); if (stack.length === 1) tabScroll[prev.type] = prev.el.scrollTop; }
+  for (let i = stack.length - 1; i >= 1; i--) { const e = stack[i]; if (e.kind === 'overlay') { try { e.close && e.close(); } catch (_) {} } else destroyEntry(e, false); }
+  if (prev) prev.el.classList.remove('active');
+  stack.length = 0;
+  stack.push(tabEntry(t));
+  const path = tabPath(t);
+  if (depth > 0) { swallowPop++; pendingPath = path; history.go(-depth); }
+  else history.replaceState({ d: 0 }, '', path);
+  showTop(false);
+  if (t === 'notifs' && notifs.some(n => !n.read)) setTimeout(() => { if (tab === 'notifs') { notifs.forEach(n => n.read = true); socket.emit('readNotifs'); renderAll(); } }, 1200);
+}
+const switchTab = goTab;
+
+// deep links and forward navigation: build the stack from the URL
+function bootRoute(fromForward) {
+  const seg = location.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  let root = 'home'; const pushes = [];
+  if (seg[0] === 'explore') root = 'explore';
+  else if (seg[0] === 'notifications') root = 'notifs';
+  else if (seg[0] === 'messages') { root = 'msgs'; if (seg[1] === 'new') pushes.push(['newdm']); else if (seg[1] && seg[1].includes('~')) { ensureConv(seg[1]); pushes.push(['dm', seg[1]]); } }
+  else if (seg[0] === 'post' && posts[seg[1]]) pushes.push(['thread', seg[1]]);
+  else if (seg[0] === 'u') { const u = byHandle(seg[1]); if (u && u.id === me.id) root = 'profile'; else if (u) pushes.push(['profile', u.id]); }
+  else if (seg[0] === 'bookmarks') pushes.push(['bookmarks']);
+  else if (seg[0] === 'house-cup') pushes.push(['cup']);
+  else if (seg[0] === 'settings') pushes.push([seg[1] === 'profile' ? 'editprofile' : 'settings']);
+  if (fromForward) for (let i = stack.length - 1; i >= 1; i--) { const e = stack[i]; if (e.kind !== 'overlay') destroyEntry(e, false); }
+  for (const s of $$('.screen')) s.classList.remove('active');
+  stack.length = 0; stack.push(tabEntry(root));
+  history.replaceState({ d: 0 }, '', tabPath(root));
+  showTop(false);
+  for (const [t, d] of pushes) pushPage(t, d);
+  if (seg[0] === 'compose') openCompose({ type: 'post' });
+}
+
+/* ---------------- pages ---------------- */
+function convUser(id) { const c = convs[id]; return c && otherUser(c); }
+function pageTitle(pg) {
+  if (pg.type === 'thread') return '<div class="pgtitle">Post</div>';
+  if (pg.type === 'profile') { const u = users[pg.data]; const n = Object.values(posts).filter(p => p.authorId === pg.data).length; return `<div class="pgtitle">${esc(u?.name||'')}<span class="sub">${fmt(n)} posts</span></div>`; }
+  if (pg.type === 'bookmarks') return '<div class="pgtitle">Bookmarks<span class="sub">@' + esc(me.handle) + '</span></div>';
+  if (pg.type === 'cup') return '<div class="pgtitle">House Cup</div>';
+  if (pg.type === 'settings') return '<div class="pgtitle">Settings</div>';
+  if (pg.type === 'editprofile') return '<div class="pgtitle">Edit profile</div>';
+  if (pg.type === 'newdm') return '<div class="pgtitle">New message</div>';
+  if (pg.type === 'dm') { const u = convUser(pg.data); return u ? `<div class="chathd">${avatar(u, 'md')}<div class="pgtitle"><span class="nmrow2"><span class="nm">${esc(u.name)}</span>${chk(u)}</span><span class="sub">@${esc(u.handle)}</span></div></div>` : '<div class="pgtitle">Message</div>'; }
+  return '<div class="pgtitle"></div>';
+}
+function pageBody(pg) {
+  if (pg.type === 'thread') { const p = posts[pg.data]; return p ? detailHTML(p) : '<div class="empty">This post was deleted.</div>'; }
+  if (pg.type === 'profile') { const u = users[pg.data]; return u ? profileHTML(u, pg.ptab || 'posts') : ''; }
+  if (pg.type === 'bookmarks') return bookmarksHTML();
+  if (pg.type === 'cup') return cupHTML();
+  if (pg.type === 'settings') return settingsHTML();
+  if (pg.type === 'editprofile') return editProfileHTML();
+  if (pg.type === 'newdm') return newDmHTML();
+  return '';
+}
+function pagePath(type, data) {
+  if (type === 'thread') return `/post/${data}`;
+  if (type === 'profile') return `/u/${users[data] ? users[data].handle : data}`;
+  if (type === 'bookmarks') return '/bookmarks';
+  if (type === 'cup') return '/house-cup';
+  if (type === 'settings') return '/settings';
+  if (type === 'editprofile') return '/settings/profile';
+  if (type === 'newdm') return '/messages/new';
+  if (type === 'dm') return `/messages/${encodeURIComponent(data)}`;
+  return location.pathname;
+}
+function pageShell(pg) {
+  const head = `<div class="pghead"><button class="back" aria-label="Back">${I.back}</button>${pageTitle(pg)}</div>`;
+  if (pg.type === 'dm') return head + `<div class="chatscroll"></div><form class="chatbar" autocomplete="off"><textarea rows="1" maxlength="500" placeholder="Start a new message"></textarea><button type="submit" class="csend" disabled aria-label="Send">${I.send}</button></form>`;
+  if (pg.type === 'thread') return head + `<div class="pgscroll">${pageBody(pg)}</div><div class="replybar"><input class="rin" maxlength="280" placeholder="Post your reply"><button class="send" disabled>Reply</button></div>`;
+  return head + `<div class="pgscroll">${pageBody(pg)}</div>`;
+}
+function pushPage(type, data) {
+  const top = pageEntry();
+  if (top && top.type === type && top.data === data) return;
+  const pg = { kind: 'page', type, data, ptab: 'posts', path: pagePath(type, data) };
+  const el = document.createElement('div');
+  el.className = 'page' + (type === 'thread' ? ' hasbar' : type === 'dm' ? ' chat' : '');
+  el.innerHTML = pageShell(pg);
+  pg.el = el;
+  $('#pages').appendChild(el);
+  el.querySelector('.back').onclick = () => uiBack();
+  if (type === 'thread') { wireReplyBar(pg); alignFocus(pg); }
+  if (type === 'dm') { wireChat(pg); renderChat(pg, true); loadHistory(data); }
+  if (type === 'newdm') wireNewDm(pg);
+  pushRoute(pg);
+}
+// replace the top page without leaving a stale history entry (new-message picker -> chat)
+function replaceTop(type, data) {
+  const e = topPage();
+  if (e && e.kind === 'page') { stack.splice(stack.indexOf(e), 1); destroyEntry(e, false); swapNext = true; }
+  pushPage(type, data);
+}
+function openThread(id) { if (posts[id]) pushPage('thread', id); }
+function openProfile(id) { if (users[id]) pushPage('profile', id); }
+function openChatWith(uid_) { if (!users[uid_] || uid_ === me.id) return; const id = convIdFor(uid_); ensureConv(id); pushPage('dm', id); }
+
+// the focused post (avatar, name, text, then stats) sits right under the header; ancestors stay above it, scrolled out of view like X
+function alignFocus(pg) {
+  const sc = pg.el.querySelector('.pgscroll'), f = sc.querySelector('.focus');
+  if (!f) return;
+  sc.scrollTop = f.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;
+  pg.aligned = true;
+}
+function renderPageEntry(pg) {
+  if (pg.type === 'compose') return; // the compose sheet is not a re-rendered page
+  if (pg.type === 'dm') return renderChat(pg);
+  if (pg.type === 'editprofile') return updateEditPreview(pg);
+  if (pg.type === 'newdm') return;
+  const sc = pg.el.querySelector('.pgscroll');
+  const keep = sc.scrollTop;
+  sc.innerHTML = pageBody(pg);
+  const head = pg.el.querySelector('.pghead');
+  head.innerHTML = `<button class="back" aria-label="Back">${I.back}</button>` + pageTitle(pg);
+  head.querySelector('.back').onclick = () => uiBack();
+  sc.scrollTop = keep;
+  if (pg.type === 'thread' && !pg.aligned) alignFocus(pg); // the post arrived after the page opened
+}
+// only the visible page renders; the rest are flagged and refresh when they come back
+function rerenderPages() {
+  const e = pageEntry();
+  if (e && isShown(e)) renderPageEntry(e);
+  for (const x of stack) if (x.kind === 'page' && x !== e && x.type !== 'compose') x.stale = true;
+}
+function wireReplyBar(pg) {
+  const input = pg.el.querySelector('.rin');
+  const btn = pg.el.querySelector('.send');
+  input.addEventListener('input', () => btn.disabled = !input.value.trim());
+  wireMention(input, () => pg.el.querySelector('.replybar'));
+  btn.onclick = () => {
+    const text = input.value.trim(); if (!text) return;
+    btn.disabled = true;
+    socket.emit('reply', { parentId: pg.data, text }, r => {
+      if (!r || !r.ok) { toast(r?.error || 'Failed'); btn.disabled = false; return; }
+      input.value = ''; btn.disabled = true; buzz(15);
+      // bring the new reply into view without throwing the focused post off the top
+      setTimeout(() => { const el = pg.el.querySelector(`[data-post="${r.id}"]`); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 200);
+    });
+  };
+  const p = posts[pg.data];
+  if (p) input.placeholder = `Reply to @${users[p.authorId]?.handle || ''}`;
+}
+function updateFab() {
+  $('#fab').classList.toggle('hidden', !rootVisible() || tab === 'msgs');
+}
+
+/* edge swipe back */
+(() => {
+  let startX = 0, startY = 0, dragging = false, cur = null;
+  document.addEventListener('touchstart', e => {
+    const pg = pageEntry();
+    if (!pg || pg.type === 'compose') return;
+    const t = e.touches[0];
+    if (t.clientX > 28) return;
+    startX = t.clientX; startY = t.clientY; dragging = true;
+    cur = pg.el;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!dragging || !cur) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX, dy = Math.abs(t.clientY - startY);
+    if (dx < 10 || dy > Math.abs(dx)) return;
+    cur.classList.add('drag');
+    cur.style.transform = `translateX(${Math.max(0, dx)}px)`;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (!dragging || !cur) { dragging = false; return; }
+    const dx = (e.changedTouches[0].clientX - startX);
+    cur.classList.remove('drag');
+    if (dx > 90) { cur.style.transition = 'transform .15s'; cur.style.transform = 'translateX(100%)'; const el = cur; setTimeout(() => { el.style.transition = ''; uiBack(); }, 100); }
+    else cur.style.transform = '';
+    dragging = false; cur = null;
+  }, { passive: true });
+})();
+
+/* ---------------- direct messages ---------------- */
+let convs = {};                 // convId -> {id, members, msgs, read, lastTs}
+const typingFrom = {};          // convId -> true while the other side is typing
+const typingTimers = {};
+const convIdFor = uid_ => [me.id, uid_].sort().join('~');
+const otherUser = c => users[c.members.find(id => id !== me.id)];
+const unreadOf = c => (c.msgs || []).filter(m => m.from !== me.id && m.ts > ((c.read || {})[me.id] || 0)).length;
+const totalUnread = () => Object.values(convs).filter(c => unreadOf(c) > 0).length;
+function ensureConv(id) { if (!convs[id]) convs[id] = { id, members: id.split('~'), msgs: [], read: {}, lastTs: 0 }; return convs[id]; }
+const chatStamp = ts => { const d = new Date(ts), n = new Date(); let h = d.getHours(); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; const t = `${h}:${String(d.getMinutes()).padStart(2, '0')} ${ap}`; return d.toDateString() === n.toDateString() ? t : `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}, ${t}`; };
+const clockOf = ts => chatStamp(ts).split(', ').pop();
+
+function renderMsgs() {
+  if (!me) return;
+  const list = Object.values(convs).filter(c => c.msgs.length && otherUser(c)).sort((a, b) => b.lastTs - a.lastTs);
+  $('#inbox').innerHTML = list.length ? list.map(c => {
+    const u = otherUser(c), m = c.msgs[c.msgs.length - 1], un = unreadOf(c) > 0;
+    return `<div class="crow${un ? ' unread' : ''}" data-conv="${c.id}">${avatar(u)}<div class="cinfo"><div class="meta"><span class="who"><span class="nm">${esc(u.name)}</span>${chk(u)}<span class="hd">@${esc(u.handle)} · ${ago(m.ts)}</span></span></div><div class="cprev">${m.from === me.id ? 'You: ' : ''}${esc(m.text.slice(0, 80))}</div></div>${un ? '<span class="udot"></span>' : ''}</div>`;
+  }).join('') : `<div class="empty" style="padding-top:70px"><b>Welcome to your inbox!</b>Message the other player, or slide into a character's DMs. They might reply. Eventually.<br><button class="pillbtn" style="margin-top:16px" id="newDm2">Write a message</button></div>`;
+  const n = totalUnread(), b = $('#mbadge');
+  b.textContent = n > 99 ? '99+' : n; b.classList.toggle('show', n > 0);
+}
+
+function chatHTML(c) {
+  const other = otherUser(c);
+  if (!other) return '';
+  const msgs = c.msgs, otherRead = (c.read || {})[other.id] || 0;
+  let lastMine = -1; msgs.forEach((m, i) => { if (m.from === me.id) lastMine = i; });
+  let html = '', prev = 0;
+  msgs.forEach((m, i) => {
+    const mine = m.from === me.id, next = msgs[i + 1];
+    if (!prev || m.ts - prev > 15 * 60e3) html += `<div class="ctime">${chatStamp(m.ts)}</div>`;
+    html += `<div class="bub ${mine ? 'me' : 'them'}" data-msg="${m.id}">${linkify(m.text)}</div>`;
+    if (m.reactions && m.reactions.length) html += `<div class="rx ${mine ? 'me' : ''}">${m.reactions.map(r => esc(r.emoji)).join(' ')}</div>`;
+    const endOfGroup = !next || next.from !== m.from || next.ts - m.ts > 15 * 60e3;
+    if (i === lastMine) html += `<div class="mtime me">${clockOf(m.ts)} · ${otherRead >= m.ts ? '<span class="seen">Seen</span>' : 'Sent'}</div>`;
+    else if (endOfGroup) html += `<div class="mtime ${mine ? 'me' : ''}">${clockOf(m.ts)}</div>`;
+    prev = m.ts;
+  });
+  if (typingFrom[c.id]) html += '<div class="bub them typingb"><span class="dots"><i></i><i></i><i></i></span></div>';
+  if (!msgs.length) html = `<div class="empty" style="padding:50px 24px"><b>${esc(other.name)}</b>@${esc(other.handle)}<br>Say hello.</div>`;
+  return html;
+}
+function renderChat(pg, first) {
+  const c = convs[pg.data];
+  if (!c) return;
+  const sc = pg.el.querySelector('.chatscroll');
+  const near = first || sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 90;
+  sc.innerHTML = chatHTML(c);
+  if (near) sc.scrollTop = sc.scrollHeight;
+  const head = pg.el.querySelector('.pghead');
+  head.innerHTML = `<button class="back" aria-label="Back">${I.back}</button>` + pageTitle(pg);
+  head.querySelector('.back').onclick = () => uiBack();
+}
+function wireChat(pg) {
+  const form = pg.el.querySelector('.chatbar'), ta = form.querySelector('textarea'), btn = form.querySelector('.csend');
+  let typingSent = 0;
+  const fit = () => { ta.style.height = 'auto'; ta.style.height = Math.min(110, ta.scrollHeight) + 'px'; };
+  ta.addEventListener('input', () => {
+    btn.disabled = !ta.value.trim(); fit();
+    const u = convUser(pg.data);
+    if (u && u.kind === 'player' && Date.now() - typingSent > 2500) { typingSent = Date.now(); socket.emit('dm:typing', { to: u.id, typing: true }); }
+  });
+  ta.addEventListener('blur', () => { const u = convUser(pg.data); if (u && u.kind === 'player') socket.emit('dm:typing', { to: u.id, typing: false }); });
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = ta.value.trim(), u = convUser(pg.data);
+    if (!text || !u) return;
+    btn.disabled = true;
+    socket.emit('dm:send', { to: u.id, text }, r => {
+      if (!r || !r.ok) { toast(r?.error || 'Could not send'); btn.disabled = !ta.value.trim(); return; }
+      ta.value = ''; fit(); buzz(8);
+      if (u.kind === 'player') socket.emit('dm:typing', { to: u.id, typing: false });
+    });
+  });
+}
+function loadHistory(id) {
+  socket.emit('dm:history', { convId: id }, r => {
+    if (!r || !r.ok) return;
+    const c = ensureConv(id);
+    c.msgs = r.conv.msgs; c.read = { ...c.read, ...r.conv.read }; c.lastTs = r.conv.lastTs;
+    renderAll();
+  });
+}
+function markConvRead(c) {
+  if (!c || !unreadOf(c) || document.hidden) return;
+  c.read = c.read || {}; c.read[me.id] = Date.now();
+  socket.emit('dm:read', { convId: c.id });
+  renderMsgs();
+}
+const chatOpen = id => { const e = pageEntry(); return !!e && e.type === 'dm' && e.data === id && isShown(e); };
+
+function newDmHTML() {
+  return `<div class="searchwrap" style="padding-top:12px"><div class="sbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="dmq" placeholder="Search people" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div><div id="dmUsers">${newDmList('')}</div>`;
+}
+function newDmList(q) {
+  q = q.trim().toLowerCase().replace(/^@/, '');
+  const fl = new Set(me.following);
+  const list = Object.values(users).filter(u => u.id !== me.id && (!q || u.name.toLowerCase().includes(q) || u.handle.includes(q)))
+    .sort((a, b) => (b.kind === 'player') - (a.kind === 'player') || fl.has(b.id) - fl.has(a.id) || (b.kind === 'char') - (a.kind === 'char') || b.followers - a.followers).slice(0, 25);
+  return list.map(u => `<div class="urow" data-dmuser="${u.id}">${avatar(u)}<div class="uinfo"><div class="meta"><span class="nm">${esc(u.name)}</span>${chk(u)}${hdot(u)}</div><div class="sub">@${esc(u.handle)}${u.kind === 'player' ? ' · Player' : ''}</div></div></div>`).join('') || '<div class="empty"><b>No one found</b></div>';
+}
+function wireNewDm(pg) {
+  const q = pg.el.querySelector('#dmq');
+  q.addEventListener('input', () => { pg.el.querySelector('#dmUsers').innerHTML = newDmList(q.value); });
+  setTimeout(() => q.focus(), 280);
+}
+
+/* ---------------- edit profile: avatar + banner upload with in-app crop ---------------- */
+const bannerStyle = u => u.bannerUrl ? `background-image:url('${u.bannerUrl}')` : `background:linear-gradient(120deg,${HC[u.house] || 'var(--staff)'} -40%,#131313 85%)`;
+function editProfileHTML() {
+  return `<div class="epbanner" id="epBanner" style="${bannerStyle(me)}"><button class="epcam" data-pick="banner" aria-label="Change banner">${I.camera}</button></div>
+  <div class="epavrow"><div class="epav av xl ${avClass(me)}" id="epAv"><button class="epcam sm" data-pick="avatar" aria-label="Change photo">${I.camera}</button></div></div>
+  <input type="file" id="epFile" accept="image/*" hidden>
+  <div class="field" style="padding:12px 16px 0"><label>Name</label><input id="epName" maxlength="30" value="${esc(me.name)}"></div>
+  <div class="field" style="padding:8px 16px 0"><label>Bio</label><input id="epBio" maxlength="160" value="${esc(me.bio || '')}"></div>
+  <div style="padding:14px 16px"><button class="pillbtn" style="margin:0" id="epSave">Save</button></div>`;
+}
+function updateEditPreview() {
+  const b = $('#epBanner'), a = $('#epAv');
+  if (b) b.setAttribute('style', bannerStyle(me));
+  if (a) a.className = `epav av xl ${avClass(me)}`;
+}
+let pickKind = null;
+async function onPickFile(file) {
+  if (!file) return;
+  if (!/^image\//.test(file.type)) return toast('Pick an image file');
+  const blob = await cropImage(file, pickKind).catch(() => null);
+  if (!blob) return;
+  toast('Uploading…');
+  const buf = await blob.arrayBuffer();
+  socket.emit('upload', { kind: pickKind, mime: blob.type, data: buf }, r => toast(r && r.ok ? (pickKind === 'avatar' ? 'Profile photo updated' : 'Banner updated') : (r?.error || 'Upload failed')));
+}
+// pan + zoom inside a fixed frame (1:1 avatar, 3:1 banner), then export a downsized WebP
+function cropImage(file, kind) {
+  return new Promise((resolve, reject) => {
+    const avatarMode = kind === 'avatar';
+    const outW = avatarMode ? 400 : 1200, outH = avatarMode ? 400 : 400;
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+    img.onload = () => {
+      const root = $('#cropper'), frame = $('#crFrame'), cv = $('#crCanvas'), zoom = $('#crZoom'), ctx = cv.getContext('2d');
+      const W = Math.min(window.innerWidth - 32, 360), H = Math.round(W * outH / outW);
+      frame.style.width = W + 'px'; frame.style.height = H + 'px'; frame.classList.toggle('round', avatarMode);
+      cv.width = W; cv.height = H;
+      $('#crTitle').textContent = avatarMode ? 'Crop photo' : 'Crop banner';
+      const base = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+      let z = 1, ox = (W - img.naturalWidth * base) / 2, oy = (H - img.naturalHeight * base) / 2;
+      zoom.value = '1';
+      const clampPos = () => { const s = base * z; ox = Math.min(0, Math.max(W - img.naturalWidth * s, ox)); oy = Math.min(0, Math.max(H - img.naturalHeight * s, oy)); };
+      const draw = () => { clampPos(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); const s = base * z; ctx.drawImage(img, ox, oy, img.naturalWidth * s, img.naturalHeight * s); };
+      const setZoom = (nz, cx = W / 2, cy = H / 2) => { const k = nz / z; ox = cx - (cx - ox) * k; oy = cy - (cy - oy) * k; z = nz; zoom.value = String(z); draw(); };
+      draw();
+      const pts = new Map(); let pinch = 0;
+      cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); pinch = 0; };
+      cv.onpointermove = e => {
+        if (!pts.has(e.pointerId)) return;
+        const prev = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
+        if (pts.size === 1) { ox += e.clientX - prev[0]; oy += e.clientY - prev[1]; draw(); }
+        else if (pts.size === 2) { const [a, b] = [...pts.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) setZoom(Math.min(4, Math.max(1, z * d / pinch))); pinch = d; }
+      };
+      const up = e => { pts.delete(e.pointerId); pinch = 0; };
+      cv.onpointerup = up; cv.onpointercancel = up;
+      cv.onwheel = e => { e.preventDefault(); setZoom(Math.min(4, Math.max(1, z * (e.deltaY < 0 ? 1.08 : 0.93)))); };
+      zoom.oninput = () => setZoom(+zoom.value);
+      const close = v => { root.classList.remove('show'); URL.revokeObjectURL(url); resolve(v); };
+      $('#crCancel').onclick = () => close(null);
+      $('#crApply').onclick = () => {
+        const out = document.createElement('canvas'); out.width = outW; out.height = outH;
+        const k = outW / W, s = base * z;
+        out.getContext('2d').drawImage(img, ox * k, oy * k, img.naturalWidth * s * k, img.naturalHeight * s * k);
+        out.toBlob(b1 => {
+          if (b1 && b1.size > 1.9 * 1024 * 1024) out.toBlob(b2 => close(b2), 'image/jpeg', 0.8); else close(b1);
+        }, 'image/webp', 0.85);
+      };
+      root.classList.add('show');
+    };
+    img.src = url;
+  });
+}
+
+/* ---------------- drawer ---------------- */
+function renderDrawer() {
+  if (!me) return;
+  $('#drawer').innerHTML = `<div class="dr-top"><button data-dr="profile">${avatar(me,'md')}</button><div class="nmrow">${esc(me.name)}${chk(me)}</div><div class="hd">@${esc(me.handle)}</div>
+    <div class="dr-counts"><span><b>${fmt((me.following||[]).length)}</b> Following</span><span><b>${fmt(me.followers)}</b> Followers</span></div></div>
+    <div class="dr-menu">
+      <button class="mrow" data-dr="profile">${I.user_o}Profile</button>
+      <button class="mrow" data-dr="bookmarks">${I.bmk_o}Bookmarks</button>
+      <button class="mrow" data-dr="cup">${I.cup}House Cup</button>
+      <button class="mrow" data-dr="settings">${I.gear}Settings</button>
+    </div>`;
+}
+let drawerOpen = false;
+function openDrawer() {
+  if (drawerOpen) return;
+  renderDrawer();
+  drawerOpen = true;
+  $('#drawer').classList.add('show'); $('#scrim').classList.add('show');
+  pushOverlay(() => { drawerOpen = false; $('#drawer').classList.remove('show'); $('#scrim').classList.remove('show'); });
+}
+$('#scrim').onclick = () => uiBack();
+$('#drawer').addEventListener('click', e => {
+  const b = e.target.closest('[data-dr]');
+  if (!b) return;
+  const what = b.dataset.dr;
+  swapOverlay(); // close the drawer now; the page opens in the same history slot
+  if (what === 'profile') openProfile(me.id);
+  if (what === 'bookmarks') pushPage('bookmarks');
+  if (what === 'cup') pushPage('cup');
+  if (what === 'settings') pushPage('settings');
+  settleSwap();
+});
+
+/* ---------------- action sheets ---------------- */
+let sheetOpen = false;
+function openSheet(items) {
+  const wrap = $('#sheetWrap'), sh = $('#sheet');
+  sh.innerHTML = '<div class="grab"></div>' + items.map((it,i) => `<button class="mrow${it.danger?' danger':''}" data-i="${i}">${it.icon||''}${esc(it.label)}</button>`).join('') + '<button class="cancelbtn" data-i="-1">Cancel</button>';
+  wrap.classList.add('show');
+  sheetOpen = true;
+  pushOverlay(() => { sheetOpen = false; wrap.classList.remove('show'); });
+  sh.onclick = e => {
+    const b = e.target.closest('[data-i]'); if (!b) return;
+    const i = +b.dataset.i;
+    if (i >= 0 && items[i].cb) { swapOverlay(); items[i].cb(); settleSwap(); }
+    else uiBack();
+  };
+  wrap.onclick = e => { if (e.target === wrap) uiBack(); };
+}
+function sharePost(p) {
+  const a = users[p.authorId];
+  const text = `${a ? a.name + ' on Owl Feed: ' : ''}"${p.text}"`;
+  if (navigator.share) navigator.share({ text }).catch(() => {});
+  else { try { navigator.clipboard.writeText(text); toast('Copied to clipboard'); } catch (_) { toast(text.slice(0, 80)); } }
+}
+function postMenu(p) {
+  const a = users[p.authorId];
+  const mine = p.authorId === me.id;
+  const items = [];
+  if (mine) items.push({ icon: I.trash, label: 'Delete post', danger: true, cb: () => openSheet([{ icon: I.trash, label: 'Yes, delete it', danger: true, cb: () => socket.emit('delete', { postId: p.id }, r => { if (!r || !r.ok) toast(r?.error || 'Failed'); else toast('Post deleted'); }) }]) });
+  else if (a) {
+    const f = me.following.includes(a.id);
+    items.push({ icon: I.user_o, label: `${f ? 'Unfollow' : 'Follow'} @${a.handle}`, cb: () => toggleFollow(a.id) });
+  }
+  items.push({ icon: bookmarks.has(p.id) ? I.bmk_f : I.bmk_o, label: bookmarks.has(p.id) ? 'Remove bookmark' : 'Bookmark', cb: () => toggleBookmark(p.id) });
+  items.push({ icon: I.copy, label: 'Copy text', cb: () => { try { navigator.clipboard.writeText(p.text); toast('Copied'); } catch (_) {} } });
+  items.push({ icon: I.share, label: 'Share post', cb: () => sharePost(p) });
+  openSheet(items);
+}
+function repostMenu(p) {
+  const rptd = (p.repostedBy||[]).some(r => r.id === me.id);
+  openSheet([
+    { icon: I.rt, label: rptd ? 'Undo repost' : 'Repost', cb: () => { socket.emit('repost', { postId: p.id }, r => { if (!r || !r.ok) toast(r?.error || 'Failed'); }); buzz(10); } },
+    { icon: I.quote, label: 'Quote', cb: () => openCompose({ type: 'quote', id: p.id }) }
+  ]);
+}
+
+/* ---------------- actions ---------------- */
+function toggleFollow(id) {
+  const f = me.following.includes(id);
+  socket.emit(f ? 'unfollow' : 'follow', { userId: id });
+  if (f) me.following = me.following.filter(x => x !== id); else me.following = [...me.following, id];
+  users[me.id] = me; buzz(10); renderAll();
+}
+function toggleBookmark(id) {
+  if (bookmarks.has(id)) { bookmarks.delete(id); }
+  else { bookmarks.add(id); toast('Added to your Bookmarks'); buzz(10); }
+  socket.emit('bookmark', { postId: id });
+  renderAll();
+}
+function toggleLike(p, el) {
+  const i = p.likedBy.indexOf(me.id);
+  if (i >= 0) { p.likedBy.splice(i, 1); p.likes = Math.max(0, p.likes - 1); }
+  else { p.likedBy.push(me.id); p.likes++; buzz(10); if (el) { el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 350); } }
+  socket.emit('like', { postId: p.id });
+  renderAll();
+}
+
+/* ---------------- delegated clicks + long press ---------------- */
+let suppressClick = false;
+document.addEventListener('click', e => {
+  if (suppressClick) { suppressClick = false; e.stopPropagation(); e.preventDefault(); return; }
+  if (!me) return;
+  // these containers have their own click handlers; avatars inside them must not open profiles
+  if (e.target.closest('#tbAvatar,#exAvatar,#newPill,#cAv,#drawer,#mention')) return;
+  const lnk = e.target.closest('.lnk');
+  if (lnk) {
+    e.stopPropagation();
+    if (lnk.dataset.handle) { const u = byHandle(lnk.dataset.handle); if (u) openProfile(u.id); return; }
+    if (lnk.dataset.tag) { goTab('explore'); $('#q').value = '#' + lnk.dataset.tag; renderExplore(); return; }
+    if (lnk.dataset.user) { openProfile(lnk.dataset.user); return; }
+  }
+  // messaging + profile pictures (checked before data-user, because their rows contain avatars)
+  const conv = e.target.closest('[data-conv]');
+  if (conv) { e.stopPropagation(); pushPage('dm', conv.dataset.conv); return; }
+  const dmu = e.target.closest('[data-dmuser]');
+  if (dmu) { e.stopPropagation(); ensureConv(convIdFor(dmu.dataset.dmuser)); replaceTop('dm', convIdFor(dmu.dataset.dmuser)); return; }
+  const dmb = e.target.closest('[data-dm]');
+  if (dmb) { e.stopPropagation(); openChatWith(dmb.dataset.dm); return; }
+  if (e.target.closest('#newDm2')) { pushPage('newdm'); return; }
+  const pick = e.target.closest('[data-pick]');
+  if (pick) { e.stopPropagation(); pickKind = pick.dataset.pick; const f = $('#epFile'); f.value = ''; f.onchange = () => onPickFile(f.files[0]); f.click(); return; }
+  const fb = e.target.closest('[data-follow]');
+  if (fb) { e.stopPropagation(); toggleFollow(fb.dataset.follow); return; }
+  const nav2 = e.target.closest('[data-nav]');
+  if (nav2) { e.stopPropagation(); pushPage(nav2.dataset.nav); return; }
+  const qEl = e.target.closest('[data-quote]');
+  if (qEl) { e.stopPropagation(); openThread(qEl.dataset.quote); return; }
+  const act = e.target.closest('[data-act]');
+  if (act) {
+    e.stopPropagation();
+    const host = act.closest('[data-post]');
+    const p = host && posts[host.dataset.post];
+    if (!p) return;
+    const kind = act.dataset.act;
+    if (kind === 'like') toggleLike(p, act);
+    else if (kind === 'rt') repostMenu(p);
+    else if (kind === 'bmk') toggleBookmark(p.id);
+    else if (kind === 'share') sharePost(p);
+    else if (kind === 'menu') postMenu(p);
+    else if (kind === 'reply') {
+      const top = pageEntry();
+      if (!(top && top.type === 'thread' && top.data === p.id)) openThread(p.id);
+      setTimeout(() => { const pg = pageEntry(); const inp = pg && pg.el.querySelector('.rin'); inp && inp.focus(); }, 300);
+    }
+    return;
+  }
+  const chip = e.target.closest('[data-q]');
+  if (chip) { $('#q').value = chip.dataset.q; saveRecent(chip.dataset.q); renderExplore(); return; }
+  if (e.target.closest('#clearRec')) { recents = []; try { localStorage.setItem('owl_recent','[]'); } catch(_){} renderExplore(); return; }
+  const setRow = e.target.closest('[data-set]');
+  if (setRow) {
+    if (setRow.dataset.set === 'install') toast(/iphone|ipad/i.test(navigator.userAgent) ? 'Safari → Share → Add to Home Screen' : 'Chrome menu ⋮ → Install app');
+    if (setRow.dataset.set === 'logout') openSheet([{ icon: I.logout, label: 'Log out of Owl Feed?', danger: true, cb: () => { try { localStorage.removeItem('owl_token'); } catch (_) {} location.reload(); } }]);
+    return;
+  }
+  if (e.target.closest('#epSave')) {
+    const name = $('#epName').value.trim(), bio = $('#epBio').value.trim();
+    socket.emit('profile', { name, bio }, r => { if (r && r.ok) { toast('Profile saved'); uiBack(); } else toast(r?.error || 'Failed'); });
+    return;
+  }
+  const pt = e.target.closest('.ptabs [data-pt]');
+  if (pt) {
+    e.stopPropagation();
+    const top = pageEntry();
+    if (top && top.type === 'profile') { top.ptab = pt.dataset.pt; rerenderPages(); }
+    else { myPtab = pt.dataset.pt; renderMyProfile(); }
+    return;
+  }
+  const uEl = e.target.closest('[data-user]');
+  if (uEl) { e.stopPropagation(); openProfile(uEl.dataset.user); return; }
+  const pEl = e.target.closest('[data-post]');
+  if (pEl && !e.target.closest('.trow')) {
+    const top = pageEntry();
+    if (!(top && top.type === 'thread' && top.data === pEl.dataset.post)) openThread(pEl.dataset.post);
+    return;
+  }
+  const tr = e.target.closest('.trow');
+  if (tr) { if (tr.dataset.post) openThread(tr.dataset.post); else if (tr.dataset.q) { $('#q').value = tr.dataset.q; saveRecent(tr.dataset.q); renderExplore(); } return; }
+  const nEl = e.target.closest('[data-notif]');
+  if (nEl) {
+    const n = notifs.find(x => x.id === nEl.dataset.notif); if (!n) return;
+    if (n.postId && posts[n.postId]) openThread(n.postId);
+    else if (n.fromId && users[n.fromId]) openProfile(n.fromId);
+    return;
+  }
+});
+// long-press a post → menu
+(() => {
+  let timer = null, sx = 0, sy = 0;
+  document.addEventListener('touchstart', e => {
+    const host = e.target.closest('[data-post]');
+    if (!host || e.target.closest('button')) return;
+    const p = posts[host.dataset.post]; if (!p) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    timer = setTimeout(() => { suppressClick = true; buzz(10); postMenu(p); }, 500);
+  }, { passive: true });
+  const cancel = e => {
+    if (!timer) return;
+    if (e.type === 'touchmove') {
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - sx) < 10 && Math.abs(t.clientY - sy) < 10) return;
+    }
+    clearTimeout(timer); timer = null;
+  };
+  document.addEventListener('touchmove', cancel, { passive: true });
+  document.addEventListener('touchend', e => { clearTimeout(timer); timer = null; }, { passive: true });
+})();
+
+/* ---------------- tabs ---------------- */
+const NAVI = { home: ['home_o','home_f'], explore: ['search_o','search_f'], notifs: ['bell_o','bell_f'], msgs: ['mail_o','mail_f'], profile: ['user_o','user_f'] };
+function renderNav() {
+  $$('#bottomnav button').forEach(b => {
+    const t = b.dataset.tab;
+    const on = t === tab;
+    b.classList.toggle('on', on);
+    const badge = b.querySelector('.badge');
+    b.innerHTML = I[NAVI[t][on ? 1 : 0]];
+    if (badge) b.appendChild(badge);
+  });
+}
+// the bottom nav is always visible and always works: it clears the stack to that tab's root
+$$('#bottomnav button').forEach(b => b.addEventListener('click', () => goTab(b.dataset.tab)));
+$('#newDm').innerHTML = I.newmsg;
+$('#newDm').onclick = () => pushPage('newdm');
+$$('#homeTabs button').forEach(b => b.onclick = () => {
+  feedMode = b.dataset.feed;
+  $$('#homeTabs button').forEach(x => x.classList.toggle('on', x === b));
+  $('#scr-home').scrollTop = 0;
+  renderFeed();
+});
+$('#tbAvatar').onclick = openDrawer;
+$('#exAvatar').onclick = openDrawer;
+$('#q').addEventListener('input', renderExplore);
+$('#q').addEventListener('change', () => saveRecent($('#q').value));
+$('#ntabs').addEventListener('click', e => {
+  const b = e.target.closest('[data-nt]'); if (!b) return;
+  ntab = b.dataset.nt;
+  $$('#ntabs button').forEach(x => x.classList.toggle('on', x === b));
+  renderNotifs();
+});
+
+/* topbar hide on scroll */
+(() => {
+  let last = 0;
+  $('#scr-home').addEventListener('scroll', e => {
+    const y = e.target.scrollTop;
+    if (y < 60) { $('#topbar').classList.remove('hide'); last = y; return; }
+    if (y - last > 14) { $('#topbar').classList.add('hide'); last = y; }
+    else if (last - y > 14) { $('#topbar').classList.remove('hide'); last = y; }
+  }, { passive: true });
+})();
+
+/* pull to refresh */
+(() => {
+  const scr = $('#scr-home'), ptr = $('#ptr');
+  let startY = 0, pulling = false, dist = 0;
+  scr.addEventListener('touchstart', e => { if (scr.scrollTop <= 0) { startY = e.touches[0].clientY; pulling = true; dist = 0; } }, { passive: true });
+  scr.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    dist = e.touches[0].clientY - startY;
+    if (dist > 0 && scr.scrollTop <= 0) {
+      const h = Math.min(70, dist * 0.45);
+      ptr.style.height = h + 'px';
+      ptr.firstElementChild.style.transform = `rotate(${dist * 1.4}deg)`;
+    }
+  }, { passive: true });
+  scr.addEventListener('touchend', () => {
+    if (!pulling) return;
+    pulling = false;
+    if (dist * 0.45 >= 60) {
+      ptr.classList.add('spin'); buzz(10);
+      setTimeout(() => { flushPending(); renderFeed(); ptr.classList.remove('spin'); ptr.style.height = '0'; }, 600);
+    } else ptr.style.height = '0';
+  }, { passive: true });
+})();
+
+/* ---------------- compose ---------------- */
+const cText = $('#cText');
+const RING_C = 62.8;
+function openCompose(mode) {
+  composeMode = mode || { type: 'post' };
+  $('#cAv').innerHTML = avatar(me);
+  $('#cReplyTo').innerHTML = '';
+  $('#cQuote').innerHTML = composeMode.type === 'quote' && posts[composeMode.id] ? quoteHTML(posts[composeMode.id]) : '';
+  $('#cHint').textContent = trend ? `Trending: ${trend.title}` : '';
+  cText.placeholder = composeMode.type === 'quote' ? 'Add a comment' : "What's happening?";
+  if (composeMode.type === 'quote') cText.value = '';
+  pushRoute({ kind: 'page', type: 'compose', path: '/compose', el: $('#compose') });
+  setTimeout(() => cText.focus(), 120);
+  updCount();
+}
+// keep the compose sheet (and its footer) above the on-screen keyboard
+function fitCompose() {
+  const vv = window.visualViewport, c = $('#compose');
+  if (!vv || !c.classList.contains('show')) return;
+  c.style.height = vv.height + 'px'; c.style.top = vv.offsetTop + 'px'; c.style.bottom = 'auto';
+  if (mm) showMention(mm.el, mm.anchor);
+}
+if (window.visualViewport) { window.visualViewport.addEventListener('resize', fitCompose); window.visualViewport.addEventListener('scroll', fitCompose); }
+$('#compose').addEventListener('animationend', () => { if (mm) showMention(mm.el, mm.anchor); }); // re-measure once the sheet has finished sliding in
+
+/* ---------------- @mention autocomplete ---------------- */
+const mp = document.createElement('div'); mp.id = 'mention'; document.body.appendChild(mp);
+let mm = null; // {el, anchor, tok, items, idx}
+function mentionToken(el) {
+  const pos = el.selectionStart ?? el.value.length;
+  const m = el.value.slice(0, pos).match(/(^|[\s(])@([a-z0-9_.]{0,20})$/i);
+  return m ? { q: m[2].toLowerCase(), start: pos - m[2].length - 1, end: pos } : null;
+}
+// people I follow and the other player first, then canon characters, then NPCs
+function mentionCandidates(q) {
+  const fl = new Set(me.following);
+  const match = u => {
+    const h = u.handle.toLowerCase(), n = u.name.toLowerCase();
+    if (!q) return 1;
+    if (h.startsWith(q)) return 4;
+    if (n.split(/\s+/).some(w => w.startsWith(q))) return 3;
+    return h.includes(q) || n.includes(q) ? 2 : 0;
+  };
+  const group = u => (u.kind === 'player' || fl.has(u.id)) ? 0 : u.kind === 'char' ? 1 : 2;
+  return Object.values(users).filter(u => u.id !== me.id && match(u))
+    .sort((a, b) => group(a) - group(b) || fl.has(b.id) - fl.has(a.id) || (b.kind === 'player') - (a.kind === 'player') || match(b) - match(a) || b.followers - a.followers)
+    .slice(0, 6);
+}
+function hideMention() { mm = null; mp.classList.remove('show'); }
+function showMention(el, anchor) {
+  const tok = me && mentionToken(el);
+  if (!tok) return hideMention();
+  const items = mentionCandidates(tok.q);
+  if (!items.length) return hideMention();
+  const idx = mm && mm.el === el ? Math.min(mm.idx, items.length - 1) : 0;
+  mm = { el, anchor, tok, items, idx };
+  mp.innerHTML = items.map((u, i) => `<div class="mi${i === idx ? ' sel' : ''}" data-i="${i}">${avatar(u)}<div class="mt"><div class="mn"><span class="nm">${esc(u.name)}</span>${chk(u)}</div><div class="mh">@${esc(u.handle)}</div></div></div>`).join('');
+  mp.classList.add('show');
+  const r = anchor.getBoundingClientRect();
+  mp.style.top = Math.max(4, r.top - mp.offsetHeight - 4) + 'px';
+}
+function pickMention(i) {
+  if (!mm) return;
+  const { el, tok, items } = mm, u = items[i];
+  if (!u) return;
+  const v = el.value, after = v.slice(tok.end).replace(/^ /, '');
+  const ins = '@' + u.handle + ' ';
+  el.value = v.slice(0, tok.start) + ins + after;
+  const c = tok.start + ins.length;
+  hideMention();
+  el.focus(); el.setSelectionRange(c, c);
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
+function wireMention(el, anchorFn) {
+  const refresh = () => showMention(el, anchorFn());
+  el.addEventListener('input', refresh);
+  el.addEventListener('click', refresh);
+  el.addEventListener('keyup', e => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) refresh(); });
+  el.addEventListener('keydown', e => {
+    if (!mm || mm.el !== el) return;
+    const n = mm.items.length;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault(); mm.idx = (mm.idx + (e.key === 'ArrowDown' ? 1 : n - 1)) % n;
+      mp.querySelectorAll('.mi').forEach((r, i) => r.classList.toggle('sel', i === mm.idx));
+    } else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); pickMention(mm.idx); }
+    else if (e.key === 'Escape') { e.preventDefault(); hideMention(); }
+  });
+  el.addEventListener('blur', () => setTimeout(() => { if (mm && mm.el === el && document.activeElement !== el) hideMention(); }, 200));
+}
+mp.addEventListener('mousedown', e => e.preventDefault()); // keep the text field focused
+mp.addEventListener('click', e => { e.stopPropagation(); const row = e.target.closest('.mi'); if (row) pickMention(+row.dataset.i); });
+wireMention(cText, () => $('.cfoot'));
+function updCount() {
+  const len = cText.value.length, left = 280 - len;
+  const ring = $('#cRing');
+  ring.querySelector('.rbar').style.strokeDashoffset = String(RING_C * (1 - Math.min(1, len / 280)));
+  ring.classList.toggle('warn', left <= 20 && left > 0);
+  ring.classList.toggle('over', left <= 0);
+  $('#cNum').textContent = left <= 20 ? left : '';
+  $('#cPost').disabled = !cText.value.trim();
+}
+cText.addEventListener('input', updCount);
+$('#fab').onclick = () => openCompose({ type: 'post' });
+$('#cCancel').onclick = () => uiBack();
+$('#cPost').onclick = () => {
+  const text = cText.value.trim(); if (!text) return;
+  $('#cPost').disabled = true;
+  const done = r => {
+    if (!r || !r.ok) { toast(r?.error || 'Failed to post'); updCount(); return; }
+    cText.value = ''; buzz(15);
+    goTab('home'); // clears compose and anything under it, back to the feed
+    $('#scr-home').scrollTop = 0;
+    tabScroll.home = 0;
+  };
+  if (composeMode.type === 'quote') socket.emit('quote', { postId: composeMode.id, text }, done);
+  else socket.emit('post', { text }, done);
+};
+
+/* ---------------- signup ---------------- */
+$('#suHouses').innerHTML = HOUSES.map(h => `<button data-h="${h}" style="color:${HC[h]}">${h}</button>`).join('');
+$('#suHouses').onclick = e => { const b = e.target.closest('[data-h]'); if (!b) return; pickedHouse = b.dataset.h; $$('#suHouses button').forEach(x => x.classList.toggle('on', x === b)); };
+$('#suHandle').addEventListener('input', e => { e.target.value = e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, ''); });
+$('#joinBtn').onclick = () => {
+  $('#suErr').textContent = '';
+  const name = $('#suName').value.trim(), handle = $('#suHandle').value.trim();
+  if (!name || !handle) return ($('#suErr').textContent = 'Name and handle required');
+  if (!pickedHouse) return ($('#suErr').textContent = 'Pick a house');
+  $('#joinBtn').disabled = true;
+  socket.emit('signup', { name, handle, house: pickedHouse, invite: $('#suInvite').value.trim() }, r => {
+    $('#joinBtn').disabled = false;
+    if (!r || !r.ok) return ($('#suErr').textContent = r?.error || 'Failed');
+    token = r.token; try { localStorage.setItem('owl_token', token); } catch (_) {}
+    $('#signup').classList.remove('show');
+    init(r.init);
+  });
+};
+
+/* ---------------- my profile tab ---------------- */
+let myPtab = 'posts';
+function renderMyProfile() {
+  if (!me) return;
+  $('#myProfile').innerHTML = `<div style="height:var(--sat)"></div>` + profileHTML(me, myPtab);
+}
+
+/* ---------------- render all ---------------- */
+let rq = false;
+function renderAll() { if (rq) return; rq = true; requestAnimationFrame(() => { rq = false; doRenderAll(); }); }
+function doRenderAll() {
+  if (!me) return;
+  me = users[me.id] || me;
+  $('#tbAvatar').innerHTML = avatar(me, 'md');
+  renderPill();
+  if (tab === 'home') renderFeed();
+  if (tab === 'explore') renderExplore();
+  if (tab === 'notifs') renderNotifs();
+  if (tab === 'profile') renderMyProfile();
+  renderMsgs();
+  const unread = notifs.filter(n => !n.read).length;
+  const b = $('#nbadge'); b.textContent = unread > 99 ? '99+' : unread; b.classList.toggle('show', unread > 0);
+  rerenderPages();
+  if (drawerOpen) renderDrawer();
+}
+
+/* skeleton while loading */
+function showSkeleton() {
+  $('#feedList').innerHTML = Array(7).fill('<div class="sk"><div class="c"></div><div class="ln"><div class="b w60"></div><div class="b w90"></div><div class="b w40"></div></div></div>').join('');
+}
+showSkeleton();
+renderNav();
+
+/* ---------------- socket ---------------- */
+function init(d) {
+  me = d.me; users = {}; posts = {};
+  d.users.forEach(u => users[u.id] = u);
+  d.posts.forEach(p => posts[p.id] = p);
+  notifs = d.notifs || []; trend = d.trend; onlineSet = new Set(d.online || []); activity = d.activity || {};
+  bookmarks = new Set(d.me.bookmarks || []);
+  events = d.events || [];
+  convs = {}; (d.dms || []).forEach(c => { convs[c.id] = c; });
+  pending = [];
+  booted = true;
+  if (!stack.length) bootRoute(); // first load: open the page the URL points at
+  renderAll();
+}
+/* ---------------- waking splash + retry ---------------- */
+let wakeTimer = null, retryTimer = null, tries = 0, everConnected = false;
+function showWaking(msg) {
+  if (msg) $('#wakingMsg').textContent = msg;
+  wakingEl.classList.add('show');
+}
+function hideWaking() { wakingEl.classList.remove('show'); clearTimeout(wakeTimer); clearTimeout(retryTimer); tries = 0; }
+function retrySoon() { // socket.io only retries by itself when the transport fails; "server says it is still waking" and "server closed us" need a manual nudge
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(() => { if (!socket.connected) { tries++; socket.connect(); } }, Math.min(1000 + tries * 700, 5000));
+}
+$('#wakingBtn').onclick = () => { tries = 0; socket.connect(); };
+wakeTimer = setTimeout(() => { if (!socket.connected) showWaking(); }, 2500); // first visit after a nap
+socket.on('connect_error', () => {
+  showWaking(tries > 6 ? 'Still waking up. Cold starts can take a minute, hang tight. We keep trying for you.' : null);
+  retrySoon();
+});
+socket.on('config', c => { $('#suInviteField').style.display = c && c.inviteRequired ? '' : 'none'; });
+socket.on('connect', () => {
+  everConnected = true; hideWaking();
+  $('#conn').classList.remove('off');
+  if (!token) { $('#signup').classList.add('show'); return; }
+  socket.emit('hello', { token }, r => {
+    if (r && r.ok) { $('#signup').classList.remove('show'); init(r.init); }
+    else { try { localStorage.removeItem('owl_token'); } catch (_) {} token = null; $('#signup').classList.add('show'); }
+  });
+});
+socket.on('disconnect', reason => {
+  $('#conn').classList.add('off');
+  clearTimeout(wakeTimer);
+  wakeTimer = setTimeout(() => { if (!socket.connected) showWaking('Lost the castle for a moment. Reconnecting…'); }, 4000);
+  if (reason === 'io server disconnect') retrySoon(); // server closed it on purpose (e.g. it is restarting)
+});
+socket.on('post:new', p => {
+  posts[p.id] = p;
+  const a = users[p.authorId];
+  // buffer top-level posts from others behind the "Show N posts" pill; replies & own posts flow straight in
+  if (me && !p.parentId && p.authorId !== me.id) {
+    pending.push(p.id);
+    renderPill();
+    if (a && a.kind === 'player' && me.following.includes(a.id) && tab !== 'home') toast(`${a.name} posted`, () => openThread(p.id));
+    rerenderPages();
+    if (tab === 'explore') renderExplore();
+  } else renderAll();
+});
+socket.on('post:update', u => { const p = posts[u.id]; if (!p) return; Object.assign(p, u); renderAll(); });
+socket.on('post:delete', d => {
+  for (const id of (d.ids || [])) { delete posts[id]; bookmarks.delete(id); pending = pending.filter(x => x !== id); }
+  const top = pageEntry();
+  if (top && top.type === 'thread' && !posts[top.data]) uiBack();
+  renderAll(); renderPill();
+});
+socket.on('user:new', u => { users[u.id] = u; renderAll(); });
+socket.on('user:update', u => { users[u.id] = { ...users[u.id], ...u }; if (me && u.id === me.id) me = users[u.id]; renderAll(); });
+socket.on('notif', n => {
+  notifs.unshift(n);
+  if (tab === 'notifs') { n.read = true; socket.emit('readNotifs'); }
+  else if (['verdict','duel','prophet','friend_viral','follow','join','mention','quote','trending','unfollow','milestone','rumour','exposed'].includes(n.type) || users[n.fromId]?.kind === 'player') {
+    toast(n.text, () => n.postId && posts[n.postId] ? openThread(n.postId) : n.fromId && users[n.fromId] && openProfile(n.fromId));
+    buzz([20, 40, 20]);
+  }
+  renderAll();
+});
+socket.on('dm:msg', ({ convId, members, msg }) => {
+  const c = ensureConv(convId);
+  c.members = members;
+  if (!c.msgs.some(m => m.id === msg.id)) c.msgs.push(msg);
+  c.lastTs = msg.ts; c.read = c.read || {}; c.read[msg.from] = msg.ts;
+  if (msg.from !== me.id) {
+    typingFrom[convId] = false;
+    if (chatOpen(convId)) markConvRead(c);
+    else { const u = users[msg.from]; if (u) toast(u.name + ': ' + msg.text.slice(0, 60), () => pushPage('dm', convId)); buzz([20, 40, 20]); }
+  }
+  renderAll();
+});
+socket.on('dm:read', ({ convId, by, ts }) => { const c = convs[convId]; if (!c) return; c.read = c.read || {}; c.read[by] = Math.max(c.read[by] || 0, ts); renderAll(); });
+socket.on('dm:react', ({ convId, msgId, reactions }) => { const c = convs[convId], m = c && c.msgs.find(x => x.id === msgId); if (m) { m.reactions = reactions; renderAll(); } });
+socket.on('dm:typing', ({ convId, from, typing }) => {
+  if (from === me.id) return;
+  typingFrom[convId] = !!typing;
+  clearTimeout(typingTimers[convId]);
+  if (typing) typingTimers[convId] = setTimeout(() => { typingFrom[convId] = false; renderAll(); }, 6000);
+  renderAll();
+});
+socket.on('activity', a => { if (a.label) activity[a.postId] = a.label; else delete activity[a.postId]; renderAll(); });
+socket.on('presence', ids => { onlineSet = new Set(ids); renderAll(); });
+socket.on('events', list => { events = list || []; if (tab === 'explore') renderExplore(); });
+socket.on('trend', t => { trend = t; toast(`New trend: ${t.title}`); renderAll(); });
+
+setInterval(() => renderAll(), 30000);
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+})();
+</script>
+</body>
+</html>

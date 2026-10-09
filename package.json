@@ -1,0 +1,25 @@
+{
+  "name": "owl-feed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Harry Potter themed social media game with AI bots",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "mock": "node server.js --mock",
+    "test": "node test/castle.test.js && node test/views.test.js && node test/dm.test.js && node test/botrel.test.js && node test/aiprov.test.js && node test/aiqueue.test.js && node test/tone.test.js && node test/store.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "mongodb": "^7.7.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0",
+    "playwright": "^1.64.0"
+  }
+}
